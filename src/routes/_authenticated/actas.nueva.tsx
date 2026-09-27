@@ -58,7 +58,10 @@ function NuevaActa() {
     try {
       const { data: acta, error } = await supabase.from("actas").insert({ tipo, empleado_id: empleadoId, tecnico_id: me!.id, observaciones: obs || null }).select("id").single();
       if (error) throw error;
-      const { error: e2 } = await supabase.from("acta_items").insert(sel.map((equipo_id) => ({ acta_id: acta.id, equipo_id })));
+      const { error: e2 } = await supabase.from("acta_items").insert(sel.map((equipo_id) => {
+        const d = det[equipo_id];
+        return { acta_id: acta.id, equipo_id, estado_fisico: d?.estado_fisico ?? "Bueno", accesorios: d?.accesorios.trim() || null, nota: d?.nota.trim() || null };
+      }));
       if (e2) throw e2;
       toast.success("Acta creada. Proceda con la firma.");
       nav({ to: "/actas/$id", params: { id: acta.id } });
@@ -66,6 +69,7 @@ function NuevaActa() {
   }
 
   const empSel = emps.data?.find((e) => e.id === empleadoId);
+  const fs = "h-9 w-full rounded-md border border-input bg-card px-2 text-sm";
   return (
     <div className="max-w-4xl">
       <PageHeader title="Nueva acta" desc="Seleccione empleado y equipos. El estado de los equipos cambia solo cuando el acta queda firmada." />
@@ -89,13 +93,18 @@ function NuevaActa() {
         </section>
         <section className="rounded-md border border-border bg-card p-4">
           <Label className="mb-2 block">2. Equipos {tipo === "entrega" ? "disponibles (puede agregar periféricos)" : `asignados a ${empSel?.nombre ?? "…"}`}</Label>
-          <Input placeholder="Buscar serie o modelo…" value={buscaEq} onChange={(e) => setBuscaEq(e.target.value)} className="mb-2" />
+          <Input placeholder="Buscar serie, modelo, activo fijo o nombre…" value={buscaEq} onChange={(e) => setBuscaEq(e.target.value)} className="mb-2" />
+          <div className="mb-2 grid grid-cols-3 gap-2">
+            <select aria-label="Tipo" className={fs} value={fTipo} onChange={(e) => setFTipo(e.target.value)}><option value="">Tipo</option>{cat.byTipo("tipo_equipo", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
+            <select aria-label="Marca" className={fs} value={fMarca} onChange={(e) => setFMarca(e.target.value)}><option value="">Marca</option>{cat.byTipo("marca", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
+            <select aria-label="Sede" className={fs} value={fSede} onChange={(e) => setFSede(e.target.value)}><option value="">Sede</option>{cat.byTipo("sede", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
+          </div>
           <ul className="max-h-72 divide-y divide-border overflow-y-auto rounded border border-border">
             {disponibles.map((e) => (
               <li key={e.id}>
                 <label className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-muted">
                   <Checkbox checked={sel.includes(e.id)} onCheckedChange={(c) => setSel(c ? [...sel, e.id] : sel.filter((x) => x !== e.id))} />
-                  <span className="flex-1">{cat.nombre(e.tipo_id)} {cat.nombre(e.marca_id)} {e.modelo}</span>
+                  <span className="flex-1">{cat.nombre(e.tipo_id)} {cat.nombre(e.marca_id)} {e.modelo}{e.activo_fijo && <span className="block text-xs text-muted-foreground">AF {e.activo_fijo}</span>}</span>
                   <span className="font-mono text-xs text-muted-foreground">{e.serie}</span>
                 </label>
               </li>
@@ -104,9 +113,27 @@ function NuevaActa() {
           </ul>
         </section>
       </div>
+      {sel.length > 0 && (
+        <section className="mt-6 rounded-md border border-border bg-card p-4">
+          <Label className="mb-3 block">3. Estado de cada equipo {tipo === "entrega" ? "entregado" : "devuelto"}</Label>
+          <div className="space-y-3">
+            {sel.map((id) => {
+              const e = eqPorId.get(id); const d = det[id] ?? { estado_fisico: "Bueno", accesorios: "", nota: "" };
+              return (
+                <div key={id} className="grid gap-2 rounded border border-border p-3 md:grid-cols-[1.4fr_0.8fr_1fr_1fr]">
+                  <div className="text-sm"><div className="font-medium">{cat.nombre(e?.tipo_id)} {cat.nombre(e?.marca_id)} {e?.modelo}</div><div className="font-mono text-xs text-muted-foreground">{e?.serie}</div></div>
+                  <select aria-label="Estado físico" className={fs} value={d.estado_fisico} onChange={(ev) => setD(id, "estado_fisico", ev.target.value)}>{["Nuevo", "Bueno", "Regular", "Con daños"].map((x) => <option key={x}>{x}</option>)}</select>
+                  <Input placeholder="Accesorios (cargador, maleta…)" value={d.accesorios} onChange={(ev) => setD(id, "accesorios", ev.target.value)} />
+                  <Input placeholder="Nota" value={d.nota} onChange={(ev) => setD(id, "nota", ev.target.value)} />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
       <div className="mt-6 space-y-2">
-        <Label>3. Observaciones</Label>
-        <Textarea value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Estado físico, accesorios, novedades…" />
+        <Label>4. Observaciones generales</Label>
+        <Textarea value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Novedades generales del acta…" />
       </div>
       <div className="mt-6 flex justify-end">
         <Button onClick={crear} disabled={loading}>Crear acta y continuar a la firma ({sel.length} equipo{sel.length === 1 ? "" : "s"})</Button>

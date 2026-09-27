@@ -27,7 +27,11 @@ function NuevaActa() {
   const [empleadoId, setEmpleadoId] = useState("");
   const [buscaEmp, setBuscaEmp] = useState("");
   const [buscaEq, setBuscaEq] = useState("");
+  const [fTipo, setFTipo] = useState("");
+  const [fMarca, setFMarca] = useState("");
+  const [fSede, setFSede] = useState("");
   const [sel, setSel] = useState<string[]>([]);
+  const [det, setDet] = useState<Record<string, { estado_fisico: string; accesorios: string; nota: string }>>({});
   const [obs, setObs] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -35,9 +39,15 @@ function NuevaActa() {
   const eqs = useQuery({ queryKey: ["equipos"], queryFn: () => fetchAll((a, b) => supabase.from("equipos").select("*, empleado:empleados(id, nombre)").order("created_at", { ascending: false }).order("id").range(a, b)) });
 
   const empleados = (emps.data ?? []).filter((e) => (tipo === "devolucion" || e.activo) && (!buscaEmp || e.nombre.toLowerCase().includes(buscaEmp.toLowerCase()) || e.identificacion.includes(buscaEmp)));
-  const disponibles = useMemo(() => (eqs.data ?? []).filter((e) =>
-    (tipo === "entrega" ? e.estado === "disponible" : e.estado === "asignado" && e.empleado_id === empleadoId) &&
-    (!buscaEq || e.serie.toLowerCase().includes(buscaEq.toLowerCase()) || (e.modelo ?? "").toLowerCase().includes(buscaEq.toLowerCase()))), [eqs.data, tipo, empleadoId, buscaEq]);
+  const disponibles = useMemo(() => {
+    const t = buscaEq.toLowerCase();
+    return (eqs.data ?? []).filter((e) =>
+      (tipo === "entrega" ? e.estado === "disponible" : e.estado === "asignado" && e.empleado_id === empleadoId) &&
+      (!fTipo || e.tipo_id === fTipo) && (!fMarca || e.marca_id === fMarca) && (!fSede || e.sede_id === fSede) &&
+      (!t || [e.serie, e.modelo, e.activo_fijo, e.nombre_equipo].some((v) => (v ?? "").toLowerCase().includes(t)))).slice(0, 300);
+  }, [eqs.data, tipo, empleadoId, buscaEq, fTipo, fMarca, fSede]);
+  const eqPorId = useMemo(() => new Map((eqs.data ?? []).map((e) => [e.id, e])), [eqs.data]);
+  const setD = (id: string, k: "estado_fisico" | "accesorios" | "nota", v: string) => setDet((d) => ({ ...d, [id]: { ...(d[id] ?? { estado_fisico: "Bueno", accesorios: "", nota: "" }), [k]: v } }));
 
   if (!me?.can("actas_entrega") && !me?.can("actas_devolucion")) return <p className="text-muted-foreground">No tiene permiso para crear actas.</p>;
 

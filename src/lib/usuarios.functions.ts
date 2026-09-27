@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { registrarAuditoria } from "./firmas.server";
@@ -17,12 +16,6 @@ async function esAdmin(ctx: Ctx) {
 }
 const NO_ADMIN = { error: "Solo el Administrador puede realizar esta acción." };
 
-function origen() {
-  const o = getRequestHeader("origin");
-  if (o) return o;
-  const h = getRequestHeader("host");
-  return h ? `https://${h}` : "";
-}
 
 function passwordTemporal() {
   const b = crypto.getRandomValues(new Uint8Array(24));
@@ -106,19 +99,6 @@ export const eliminarAuxiliar = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const enlaceRestablecer = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ userId: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    if (!(await esAdmin(context))) return NO_ADMIN;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: p } = await supabaseAdmin.from("profiles").select("email").eq("id", data.userId).maybeSingle();
-    if (!p?.email) return { error: "Usuario no encontrado" };
-    const { data: link, error } = await supabaseAdmin.auth.admin.generateLink({ type: "recovery", email: p.email, options: { redirectTo: `${origen()}/restablecer` } });
-    if (error) return { error: error.message };
-    await registrarAuditoria(supabaseAdmin, context.userId, "usuarios", "ENLACE_CLAVE", data.userId, "Enlace para definir contraseña generado");
-    return { url: link.properties.action_link };
-  });
 
 export const habilitarAccesoEmpleado = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

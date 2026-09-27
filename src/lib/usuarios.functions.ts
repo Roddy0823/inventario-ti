@@ -106,19 +106,6 @@ export const eliminarAuxiliar = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const enlaceRestablecer = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ userId: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    if (!(await esAdmin(context))) return NO_ADMIN;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: p } = await supabaseAdmin.from("profiles").select("email").eq("id", data.userId).maybeSingle();
-    if (!p?.email) return { error: "Usuario no encontrado" };
-    const { data: link, error } = await supabaseAdmin.auth.admin.generateLink({ type: "recovery", email: p.email, options: { redirectTo: `${origen()}/restablecer` } });
-    if (error) return { error: error.message };
-    await registrarAuditoria(supabaseAdmin, context.userId, "usuarios", "ENLACE_CLAVE", data.userId, "Enlace para definir contraseña generado");
-    return { url: link.properties.action_link };
-  });
 
 export const habilitarAccesoEmpleado = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

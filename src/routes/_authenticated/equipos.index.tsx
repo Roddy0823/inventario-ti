@@ -28,30 +28,47 @@ export const equiposQuery = {
 
 const sel = "h-9 rounded-md border border-input bg-card px-3 text-sm";
 
+type Pestana = "activos" | "en_reparacion" | "de_baja";
+
 function Equipos() {
   const { data: me } = useMe();
   const cat = useCatalogos();
   const q = useQuery(equiposQuery);
+  const [tab, setTab] = useState<Pestana>("activos");
   const [f, setF] = useState({ texto: "", tipo: "", marca: "", estado: "", sede: "" });
+  const conteo = useMemo(() => {
+    const d = q.data ?? [];
+    return { activos: d.filter((e) => e.estado === "disponible" || e.estado === "asignado").length, en_reparacion: d.filter((e) => e.estado === "en_reparacion").length, de_baja: d.filter((e) => e.estado === "de_baja").length };
+  }, [q.data]);
   const lista = useMemo(() => {
     const t = f.texto.trim().toLowerCase();
     return (q.data ?? []).filter((e) =>
+      (tab === "activos" ? (e.estado === "disponible" || e.estado === "asignado") : e.estado === tab) &&
       (!t || e.serie.toLowerCase().includes(t) || (e.activo_fijo ?? "").toLowerCase().includes(t) || (e.modelo ?? "").toLowerCase().includes(t) || ((e.empleado as { nombre: string } | null)?.nombre ?? "").toLowerCase().includes(t)) &&
-      (!f.tipo || e.tipo_id === f.tipo) && (!f.marca || e.marca_id === f.marca) && (!f.estado || e.estado === f.estado) && (!f.sede || e.sede_id === f.sede));
-  }, [q.data, f]);
+      (!f.tipo || e.tipo_id === f.tipo) && (!f.marca || e.marca_id === f.marca) && (tab !== "activos" || !f.estado || e.estado === f.estado) && (!f.sede || e.sede_id === f.sede));
+  }, [q.data, f, tab]);
 
+  const tabs: [Pestana, string][] = [["activos", "Activos"], ["en_reparacion", "En reparación"], ["de_baja", "Dados de baja"]];
   return (
     <div>
       <PageHeader title="Inventario" desc={`${lista.length} equipo(s)`}>
         {me?.can("equipos_editar") && <NuevoEquipo />}
       </PageHeader>
+      <div className="mb-4 flex gap-1 border-b border-border">
+        {tabs.map(([k, l]) => (
+          <button key={k} onClick={() => setTab(k)} className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${tab === k ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+            {l} <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs">{conteo[k]}</span>
+          </button>
+        ))}
+      </div>
       <div className="mb-4 flex flex-wrap gap-2">
         <Input placeholder="Buscar por serie, activo fijo, modelo o empleado" className="w-full sm:w-80" value={f.texto} onChange={(e) => setF({ ...f, texto: e.target.value })} />
         <select className={sel} value={f.tipo} onChange={(e) => setF({ ...f, tipo: e.target.value })}><option value="">Tipo</option>{cat.byTipo("tipo_equipo", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
         <select className={sel} value={f.marca} onChange={(e) => setF({ ...f, marca: e.target.value })}><option value="">Marca</option>{cat.byTipo("marca", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
-        <select className={sel} value={f.estado} onChange={(e) => setF({ ...f, estado: e.target.value })}><option value="">Estado</option>{Object.entries(ESTADO_EQUIPO).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
+        {tab === "activos" && <select className={sel} value={f.estado} onChange={(e) => setF({ ...f, estado: e.target.value })}><option value="">Estado</option><option value="disponible">{ESTADO_EQUIPO.disponible.label}</option><option value="asignado">{ESTADO_EQUIPO.asignado.label}</option></select>}
         <select className={sel} value={f.sede} onChange={(e) => setF({ ...f, sede: e.target.value })}><option value="">Sede</option>{cat.byTipo("sede", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
       </div>
+      {tab !== "activos" ? <ListaEspecial tab={tab} lista={lista} puedeEditar={!!me?.can("equipos_editar")} /> : (
       <div className="overflow-x-auto rounded-md border border-border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">

@@ -5,10 +5,20 @@ Aplicación interna en español, estilo corporativo sobrio (azules profundos, gr
 ## Fase 1 — Base, acceso y catálogos
 
 - Inicio de sesión con correo y contraseña, recuperación de contraseña y pantalla de restablecimiento. Sin registro público.
-- Roles: Administrador y Auxiliar de Soporte, guardados en una tabla de roles aparte (nunca en el perfil) para evitar escalación de privilegios.
-- Panel principal con menú lateral: Inventario, Empleados, Actas, Repositorio, Catálogos, Usuarios, Auditoría (los tres últimos solo Administrador).
+- Tres roles: Administrador, Auxiliar de Soporte y Empleado, guardados en una tabla de roles aparte (nunca en el perfil).
+- **Administrador creado solo en Supabase**: se crea el usuario en el panel de Supabase y se le asigna el rol con una instrucción SQL que te entregaré. La aplicación nunca permite crear ni ascender administradores.
+- **Auxiliares creados por el Administrador** desde su panel (correo + contraseña temporal o enlace de invitación), con suspensión y reactivación.
+- **Permisos configurables por auxiliar**: casillas por acción (crear/editar equipos, crear/editar empleados, cargas masivas, crear entregas, crear devoluciones, capturar firmas, ver repositorio, exportar reportes). Se validan en la base de datos, no solo en pantalla.
+- Panel principal con menú lateral que muestra solo lo que el usuario tiene permitido: Inventario, Empleados, Actas, Repositorio, Catálogos, Usuarios, Auditoría.
 - Catálogos maestros: Marcas, Tipos de equipo, Sedes, Áreas y Empresas. Crear, editar y desactivar; no se pueden eliminar si ya están en uso.
-- Registro automático de auditoría (quién creó, editó o anuló cada registro, con fecha y hora).
+- Auditoría automática e inalterable de toda acción: quién, qué, cuándo, valores antes/después e IP cuando aplique. Incluye inicios de sesión, creación de cuentas, cambios de permisos, firmas y anulaciones. Nadie puede editarla ni borrarla.
+
+## Portal del Empleado
+
+- Acceso del empleado: desde la ficha del empleado, el Administrador o un auxiliar con permiso pulsa "Habilitar acceso", se crea su cuenta con su correo corporativo y se genera un enlace para que defina su contraseña (se copia para enviarlo). También se puede habilitar en lote tras la carga CSV.
+- Al dar de baja al empleado, su acceso se suspende automáticamente.
+- Su panel muestra: actas pendientes de firma (entregas y devoluciones) con botón para firmar ahí mismo, equipos que tiene asignados actualmente, e historial de actas firmadas con descarga del PDF.
+- El empleado solo ve sus propios datos; puede seguir firmando también por enlace remoto o presencialmente sin cuenta.
 
 ## Fase 2 — Equipos y empleados
 

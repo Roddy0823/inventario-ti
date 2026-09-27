@@ -5,7 +5,9 @@ import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
 import { useCatalogos } from "@/lib/catalogos";
-import { ESTADO_EQUIPO, errMsg } from "@/lib/constantes";
+import { ESTADO_EQUIPO, errMsg, fmtFecha } from "@/lib/constantes";
+import { FinalizarReparacion } from "@/components/FinalizarReparacion";
+import * as XLSX from "xlsx";
 import { PageHeader, EstadoEquipo } from "@/components/Estado";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,30 +30,47 @@ export const equiposQuery = {
 
 const sel = "h-9 rounded-md border border-input bg-card px-3 text-sm";
 
+type Pestana = "activos" | "en_reparacion" | "de_baja";
+
 function Equipos() {
   const { data: me } = useMe();
   const cat = useCatalogos();
   const q = useQuery(equiposQuery);
+  const [tab, setTab] = useState<Pestana>("activos");
   const [f, setF] = useState({ texto: "", tipo: "", marca: "", estado: "", sede: "" });
+  const conteo = useMemo(() => {
+    const d = q.data ?? [];
+    return { activos: d.filter((e) => e.estado === "disponible" || e.estado === "asignado").length, en_reparacion: d.filter((e) => e.estado === "en_reparacion").length, de_baja: d.filter((e) => e.estado === "de_baja").length };
+  }, [q.data]);
   const lista = useMemo(() => {
     const t = f.texto.trim().toLowerCase();
     return (q.data ?? []).filter((e) =>
+      (tab === "activos" ? (e.estado === "disponible" || e.estado === "asignado") : e.estado === tab) &&
       (!t || e.serie.toLowerCase().includes(t) || (e.activo_fijo ?? "").toLowerCase().includes(t) || (e.modelo ?? "").toLowerCase().includes(t) || ((e.empleado as { nombre: string } | null)?.nombre ?? "").toLowerCase().includes(t)) &&
-      (!f.tipo || e.tipo_id === f.tipo) && (!f.marca || e.marca_id === f.marca) && (!f.estado || e.estado === f.estado) && (!f.sede || e.sede_id === f.sede));
-  }, [q.data, f]);
+      (!f.tipo || e.tipo_id === f.tipo) && (!f.marca || e.marca_id === f.marca) && (tab !== "activos" || !f.estado || e.estado === f.estado) && (!f.sede || e.sede_id === f.sede));
+  }, [q.data, f, tab]);
 
+  const tabs: [Pestana, string][] = [["activos", "Activos"], ["en_reparacion", "En reparación"], ["de_baja", "Dados de baja"]];
   return (
     <div>
       <PageHeader title="Inventario" desc={`${lista.length} equipo(s)`}>
         {me?.can("equipos_editar") && <NuevoEquipo />}
       </PageHeader>
+      <div className="mb-4 flex gap-1 border-b border-border">
+        {tabs.map(([k, l]) => (
+          <button key={k} onClick={() => setTab(k)} className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${tab === k ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+            {l} <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs">{conteo[k]}</span>
+          </button>
+        ))}
+      </div>
       <div className="mb-4 flex flex-wrap gap-2">
         <Input placeholder="Buscar por serie, activo fijo, modelo o empleado" className="w-full sm:w-80" value={f.texto} onChange={(e) => setF({ ...f, texto: e.target.value })} />
         <select className={sel} value={f.tipo} onChange={(e) => setF({ ...f, tipo: e.target.value })}><option value="">Tipo</option>{cat.byTipo("tipo_equipo", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
         <select className={sel} value={f.marca} onChange={(e) => setF({ ...f, marca: e.target.value })}><option value="">Marca</option>{cat.byTipo("marca", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
-        <select className={sel} value={f.estado} onChange={(e) => setF({ ...f, estado: e.target.value })}><option value="">Estado</option>{Object.entries(ESTADO_EQUIPO).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
+        {tab === "activos" && <select className={sel} value={f.estado} onChange={(e) => setF({ ...f, estado: e.target.value })}><option value="">Estado</option><option value="disponible">Disponible</option><option value="asignado">Asignado</option></select>}
         <select className={sel} value={f.sede} onChange={(e) => setF({ ...f, sede: e.target.value })}><option value="">Sede</option>{cat.byTipo("sede", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
       </div>
+      {tab !== "activos" ? <ListaEspecial tab={tab} lista={lista} puedeEditar={!!me?.can("equipos_editar")} /> : (
       <div className="overflow-x-auto rounded-md border border-border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
@@ -69,6 +88,89 @@ function Equipos() {
               </tr>
             ))}
             {!q.isLoading && !lista.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No hay equipos que coincidan.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      )}
+    </div>
+  );
+}
+
+type Eq = { id: string; serie: string; activo_fijo: string | null; tipo_id: string; marca_id: string | null; modelo: string | null; sede_id: string | null; estado: string; empleado: unknown };
+
+function ListaEspecial({ tab, lista, puedeEditar }: { tab: "en_reparacion" | "de_baja"; lista: Eq[]; puedeEditar: boolean }) {
+  const cat = useCatalogos();
+  const hq = useQuery({
+    queryKey: ["equipos", "eventos", tab, lista.map((e) => e.id).join(",")],
+    enabled: lista.length > 0,
+    queryFn: async () => {
+      const ids = lista.map((e) => e.id);
+      const filas: { equipo_id: string; detalle: string | null; created_at: string; user_id: string | null }[] = [];
+      for (let i = 0; i < ids.length; i += 200) {
+        const { data } = await supabase.from("equipo_historial").select("equipo_id, detalle, created_at, user_id").eq("evento", tab).in("equipo_id", ids.slice(i, i + 200)).order("created_at", { ascending: false });
+        filas.push(...(data ?? []));
+      }
+      const ultimo: Record<string, (typeof filas)[number]> = {};
+      for (const r of filas) if (!ultimo[r.equipo_id]) ultimo[r.equipo_id] = r;
+      const uids = [...new Set(Object.values(ultimo).map((r) => r.user_id).filter(Boolean))] as string[];
+      const { data: ps } = uids.length ? await supabase.from("profiles").select("id, nombre, email").in("id", uids) : { data: [] };
+      const usuarios = Object.fromEntries((ps ?? []).map((p) => [p.id, p.nombre || p.email]));
+      return { ultimo, usuarios };
+    },
+  });
+  const info = (id: string) => {
+    const r = hq.data?.ultimo[id];
+    const d = r?.detalle ?? "";
+    return {
+      fecha: r ? fmtFecha(r.created_at) : "—",
+      motivo: d.match(/Motivo:\s*(.*)$/)?.[1] ?? "—",
+      anterior: d.match(/Responsable:\s*(.*?)\s*→/)?.[1] ?? "—",
+      por: r?.user_id ? hq.data?.usuarios[r.user_id] ?? "Usuario" : "—",
+    };
+  };
+  function exportar() {
+    const filas = lista.map((e) => {
+      const i = info(e.id);
+      const emp = (e.empleado as { nombre: string } | null)?.nombre ?? "";
+      return tab === "en_reparacion"
+        ? { Serie: e.serie, "Activo fijo": e.activo_fijo ?? "", Tipo: cat.nombre(e.tipo_id), Marca: cat.nombre(e.marca_id), Modelo: e.modelo ?? "", Empleado: emp, Desde: i.fecha, Motivo: i.motivo }
+        : { Serie: e.serie, "Activo fijo": e.activo_fijo ?? "", Tipo: cat.nombre(e.tipo_id), Marca: cat.nombre(e.marca_id), Modelo: e.modelo ?? "", "Último responsable": i.anterior, "Fecha de baja": i.fecha, Motivo: i.motivo, "Dado de baja por": i.por };
+    });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filas), tab === "en_reparacion" ? "En reparación" : "Dados de baja");
+    XLSX.writeFile(wb, tab === "en_reparacion" ? "equipos-en-reparacion.xlsx" : "equipos-dados-de-baja.xlsx");
+  }
+  const th = "px-4 py-2";
+  return (
+    <div>
+      <div className="mb-2 flex justify-end"><Button variant="outline" size="sm" onClick={exportar} disabled={!lista.length}>Exportar a Excel</Button></div>
+      <div className="overflow-x-auto rounded-md border border-border bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
+            {tab === "en_reparacion"
+              ? <tr><th className={th}>Serie / código</th><th className={th}>Equipo</th><th className={th}>Empleado ligado</th><th className={th}>Desde</th><th className={th}>Motivo</th><th className={th}></th></tr>
+              : <tr><th className={th}>Serie / código</th><th className={th}>Equipo</th><th className={th}>Último responsable</th><th className={th}>Fecha de baja</th><th className={th}>Motivo</th><th className={th}>Por</th></tr>}
+          </thead>
+          <tbody className="divide-y divide-border">
+            {lista.map((e) => {
+              const i = info(e.id);
+              const emp = e.empleado as { id: string; nombre: string } | null;
+              return (
+                <tr key={e.id} className="hover:bg-muted/50">
+                  <td className="px-4 py-2.5"><Link to="/equipos/$id" params={{ id: e.id }} className="font-mono text-xs font-medium text-primary hover:underline">{e.serie}</Link>{e.activo_fijo && <div className="font-mono text-[11px] text-muted-foreground">{e.activo_fijo}</div>}</td>
+                  <td className="px-4 py-2.5">{cat.nombre(e.tipo_id)} · {cat.nombre(e.marca_id)} {e.modelo}</td>
+                  {tab === "en_reparacion"
+                    ? <td className="px-4 py-2.5">{emp ? <Link to="/empleados/$id" params={{ id: emp.id }} className="text-primary hover:underline">{emp.nombre}</Link> : "—"}</td>
+                    : <td className="px-4 py-2.5">{i.anterior}</td>}
+                  <td className="px-4 py-2.5 whitespace-nowrap">{i.fecha}</td>
+                  <td className="px-4 py-2.5 max-w-xs">{i.motivo}</td>
+                  {tab === "en_reparacion"
+                    ? <td className="px-4 py-2.5 text-right">{puedeEditar && <FinalizarReparacion id={e.id} empleado={emp?.nombre ?? null} size="sm" />}</td>
+                    : <td className="px-4 py-2.5">{i.por}</td>}
+                </tr>
+              );
+            })}
+            {!lista.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No hay equipos en esta sección.</td></tr>}
           </tbody>
         </table>
       </div>

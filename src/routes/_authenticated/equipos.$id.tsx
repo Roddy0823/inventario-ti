@@ -1,3 +1,4 @@
+import { FinalizarReparacion } from "@/components/FinalizarReparacion";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -139,7 +140,7 @@ function EditarEquipo({ e }: { e: Eq }) {
 function CambiarEstado({ id, actual, admin }: { id: string; actual: string; admin: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [estado, setEstado] = useState(actual === "en_reparacion" ? "disponible" : "en_reparacion");
+  const [estado, setEstado] = useState(actual === "en_reparacion" ? "de_baja" : "en_reparacion");
   const [motivo, setMotivo] = useState("");
   async function guardar() {
     if (!motivo.trim()) return toast.error("El motivo es obligatorio");

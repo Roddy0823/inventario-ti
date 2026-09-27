@@ -26,15 +26,19 @@ function Reportes() {
   if (!me?.can("reportes_exportar")) return <p className="text-muted-foreground">No tiene permiso para exportar reportes.</p>;
 
   async function inventario() {
-    let q = supabase.from("equipos").select("*, empleado:empleados(nombre, identificacion)").order("serie");
-    if (estado) q = q.eq("estado", estado as "disponible");
-    if (sede) q = q.eq("sede_id", sede);
-    const { data, error } = await q;
-    if (error) return toast.error(error.message);
+    let data;
+    try {
+      data = await fetchAll((a, b) => {
+        let q = supabase.from("equipos").select("*, empleado:empleados(nombre, identificacion)").order("serie");
+        if (estado) q = q.eq("estado", estado as "disponible");
+        if (sede) q = q.eq("sede_id", sede);
+        return q.range(a, b);
+      });
+    } catch (e) { return toast.error((e as Error).message); }
     if (!data?.length) return toast.info("No hay datos para exportar");
     descargarCSV(`inventario_${hoy}.csv`, data.map((e) => {
       const emp = e.empleado as { nombre: string; identificacion: string } | null;
-      return { serie: e.serie, tipo: cat.nombre(e.tipo_id), marca: cat.nombre(e.marca_id), modelo: e.modelo ?? "", sede: cat.nombre(e.sede_id), estado: ESTADO_EQUIPO[e.estado]?.label, asignado_a: emp?.nombre ?? "", identificacion: emp?.identificacion ?? "", fecha_ingreso: e.fecha_ingreso, garantia_fin: e.garantia_fin ?? "", proveedor: e.proveedor ?? "" };
+      return { serie: e.serie, activo_fijo: e.activo_fijo ?? "", tipo: cat.nombre(e.tipo_id), marca: cat.nombre(e.marca_id), modelo: e.modelo ?? "", sede: cat.nombre(e.sede_id), estado: ESTADO_EQUIPO[e.estado]?.label, asignado_a: emp?.nombre ?? "", identificacion: emp?.identificacion ?? "", fecha_ingreso: e.fecha_ingreso, anio_compra: e.anio_compra ?? "", garantia_fin: e.garantia_fin ?? "", proveedor: e.proveedor ?? "", nombre_equipo: e.nombre_equipo ?? "", novedad: e.novedad ?? "" };
     }));
     await supabase.rpc("log_evento", { p_accion: "EXPORTAR", p_detalle: "Reporte de inventario" });
   }

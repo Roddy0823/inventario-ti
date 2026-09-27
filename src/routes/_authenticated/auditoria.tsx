@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
 import { PageHeader } from "@/components/Estado";
@@ -59,8 +59,8 @@ function Auditoria() {
           </thead>
           <tbody className="divide-y divide-border">
             {filas.map((r) => (
-              <>
-                <tr key={r.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setAbierto(abierto === r.id ? null : r.id)}>
+              <Fragment key={r.id}>
+                <tr className="cursor-pointer hover:bg-muted/50" onClick={() => setAbierto(abierto === r.id ? null : r.id)}>
                   <td className="whitespace-nowrap px-4 py-2 text-xs">{fmtFecha(r.created_at, true)}</td>
                   <td className="px-4 py-2">{r.usuario}</td>
                   <td className="px-4 py-2">{TABLAS[r.tabla] ?? r.tabla}</td>
@@ -68,14 +68,14 @@ function Auditoria() {
                   <td className="px-4 py-2 text-xs text-muted-foreground">{r.detalle ?? (r.antes || r.despues ? "Ver cambios" : "")}</td>
                 </tr>
                 {abierto === r.id && (r.antes || r.despues) && (
-                  <tr key={r.id + "-d"}><td colSpan={5} className="bg-muted/40 px-4 py-3">
+                  <tr><td colSpan={5} className="bg-muted/40 px-4 py-3">
                     <div className="grid gap-3 md:grid-cols-2 text-xs">
                       <pre className="overflow-auto rounded bg-card p-2">{r.antes ? JSON.stringify(r.antes, null, 1) : "—"}</pre>
                       <pre className="overflow-auto rounded bg-card p-2">{r.despues ? JSON.stringify(r.despues, null, 1) : "—"}</pre>
                     </div>
                   </td></tr>
                 )}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>

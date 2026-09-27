@@ -10,13 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as RecuperarRouteImport } from './routes/recuperar'
 import { Route as RestablecerRouteImport } from './routes/restablecer'
+import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
+import { Route as AuthenticatedCatalogosRouteImport } from './routes/_authenticated/catalogos'
+import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
+import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as FirmarTokenRouteImport } from './routes/firmar.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecuperarRoute = RecuperarRouteImport.update({
@@ -29,6 +38,26 @@ const RestablecerRoute = RestablecerRouteImport.update({
   path: '/restablecer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCatalogosRoute = AuthenticatedCatalogosRouteImport.update({
+  id: '/catalogos',
+  path: '/catalogos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
+  id: '/panel',
+  path: '/panel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const FirmarTokenRoute = FirmarTokenRouteImport.update({
   id: '/firmar/$token',
   path: '/firmar/$token',
@@ -39,31 +68,71 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
+  '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/catalogos': typeof AuthenticatedCatalogosRoute
+  '/panel': typeof AuthenticatedPanelRoute
+  '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
+  '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/catalogos': typeof AuthenticatedCatalogosRoute
+  '/panel': typeof AuthenticatedPanelRoute
+  '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
+  '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/_authenticated/catalogos': typeof AuthenticatedCatalogosRoute
+  '/_authenticated/panel': typeof AuthenticatedPanelRoute
+  '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/recuperar' | '/restablecer' | '/firmar/$token'
+  fullPaths:
+    | '/'
+    | '/recuperar'
+    | '/restablecer'
+    | '/auditoria'
+    | '/catalogos'
+    | '/panel'
+    | '/usuarios'
+    | '/firmar/$token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/recuperar' | '/restablecer' | '/firmar/$token'
-  id: '__root__' | '/' | '/recuperar' | '/restablecer' | '/firmar/$token'
+  to:
+    | '/'
+    | '/recuperar'
+    | '/restablecer'
+    | '/auditoria'
+    | '/catalogos'
+    | '/panel'
+    | '/usuarios'
+    | '/firmar/$token'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/recuperar'
+    | '/restablecer'
+    | '/_authenticated/auditoria'
+    | '/_authenticated/catalogos'
+    | '/_authenticated/panel'
+    | '/_authenticated/usuarios'
+    | '/firmar/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   RecuperarRoute: typeof RecuperarRoute
   RestablecerRoute: typeof RestablecerRoute
   FirmarTokenRoute: typeof FirmarTokenRoute
@@ -76,6 +145,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recuperar': {
@@ -92,6 +168,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestablecerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/auditoria': {
+      id: '/_authenticated/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuthenticatedAuditoriaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/catalogos': {
+      id: '/_authenticated/catalogos'
+      path: '/catalogos'
+      fullPath: '/catalogos'
+      preLoaderRoute: typeof AuthenticatedCatalogosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/panel': {
+      id: '/_authenticated/panel'
+      path: '/panel'
+      fullPath: '/panel'
+      preLoaderRoute: typeof AuthenticatedPanelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/usuarios': {
+      id: '/_authenticated/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof AuthenticatedUsuariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/firmar/$token': {
       id: '/firmar/$token'
       path: '/firmar/$token'
@@ -102,8 +206,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
+  AuthenticatedCatalogosRoute: typeof AuthenticatedCatalogosRoute
+  AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
+  AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
+  AuthenticatedCatalogosRoute: AuthenticatedCatalogosRoute,
+  AuthenticatedPanelRoute: AuthenticatedPanelRoute,
+  AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   RecuperarRoute: RecuperarRoute,
   RestablecerRoute: RestablecerRoute,
   FirmarTokenRoute: FirmarTokenRoute,

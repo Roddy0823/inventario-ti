@@ -8,13 +8,14 @@ const PERMISOS = ["equipos_editar", "empleados_editar", "cargas_masivas", "actas
 
 type Ctx = { supabase: import("@supabase/supabase-js").SupabaseClient<import("@/integrations/supabase/types").Database>; userId: string };
 
-async function exigirAdmin(ctx: Ctx) {
+async function esAdmin(ctx: Ctx) {
   const [{ data: admin }, { data: activo }] = await Promise.all([
     ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: "admin" }),
     ctx.supabase.rpc("is_active", { _user_id: ctx.userId }),
   ]);
-  if (!admin || !activo) throw new Error("Solo el Administrador puede realizar esta acción.");
+  return !!admin && !!activo;
 }
+const NO_ADMIN = { error: "Solo el Administrador puede realizar esta acción." };
 
 function origen() {
   const o = getRequestHeader("origin");
@@ -39,7 +40,7 @@ export const crearAuxiliar = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    await exigirAdmin(context);
+    if (!(await esAdmin(context))) return NO_ADMIN;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: u, error } = await supabaseAdmin.auth.admin.createUser({
       email: data.email.toLowerCase(),
@@ -47,7 +48,7 @@ export const crearAuxiliar = createServerFn({ method: "POST" })
       email_confirm: true,
       user_metadata: { nombre: data.nombre },
     });
-    if (error || !u.user) throw new Error(error?.message.includes("already") ? "Ya existe un usuario con ese correo." : error?.message ?? "Error");
+    if (error || !u.user) return { error: error?.message.includes("already") ? "Ya existe un usuario con ese correo." : error?.message ?? "No se pudo crear el usuario." };
     const id = u.user.id;
     await supabaseAdmin.from("profiles").upsert({ id, email: data.email.toLowerCase(), nombre: data.nombre, activo: true });
     await supabaseAdmin.from("user_roles").insert({ user_id: id, role: "auxiliar" });

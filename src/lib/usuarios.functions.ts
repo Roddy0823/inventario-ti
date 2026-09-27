@@ -193,8 +193,8 @@ export const retirarEmpleado = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     // La actualización con el cliente del usuario aplica RLS y la regla de paz y salvo
     const { data: emp, error } = await context.supabase.from("empleados").update({ activo: false }).eq("id", data.empleadoId).select("id, user_id").maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!emp) throw new Error("No tiene permiso para retirar empleados.");
+    if (error) return { error: error.message };
+    if (!emp) return { error: "No tiene permiso para retirar empleados." };
     if (emp.user_id) {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await supabaseAdmin.auth.admin.updateUserById(emp.user_id, { ban_duration: "876000h" });

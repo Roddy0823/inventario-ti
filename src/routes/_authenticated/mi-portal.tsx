@@ -59,7 +59,7 @@ function Portal() {
           <div className="space-y-2">
             {pendientes.map((a) => (
               <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-warning/40 bg-warning/10 p-4">
-                <div><div className="font-medium">Acta de {TIPO_ACTA[a.tipo].toLowerCase()} #{a.numero}</div><div className="text-xs text-muted-foreground">{fmtFecha(a.created_at, true)} · {a.items.length} equipo(s)</div></div>
+                <div><div className="font-medium">Acta de {TIPO_ACTA[a.tipo]?.toLowerCase()} #{a.numero}</div><div className="text-xs text-muted-foreground">{fmtFecha(a.created_at, true)} · {a.items.length} equipo(s)</div></div>
                 <Button onClick={() => setAbierta(a.id)}>Revisar y firmar</Button>
               </div>
             ))}

@@ -65,7 +65,7 @@ function Panel() {
   );
 }
 
-function Stat({ label, value }: { label: string; value?: number }) {
+function Stat({ label, value }: { label: string; value?: number | undefined }) {
   return (
     <div className="rounded-md border border-border bg-card p-4">
       <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>

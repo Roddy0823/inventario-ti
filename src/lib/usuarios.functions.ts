@@ -17,12 +17,6 @@ async function esAdmin(ctx: Ctx) {
 }
 const NO_ADMIN = { error: "Solo el Administrador puede realizar esta acción." };
 
-function origen() {
-  const o = getRequestHeader("origin");
-  if (o) return o;
-  const h = getRequestHeader("host");
-  return h ? `https://${h}` : "";
-}
 
 function passwordTemporal() {
   const b = crypto.getRandomValues(new Uint8Array(24));

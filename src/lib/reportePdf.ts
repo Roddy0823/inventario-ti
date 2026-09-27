@@ -5,7 +5,7 @@ const NAVY: [number, number, number] = [11, 37, 69];
 const AZUL: [number, number, number] = [19, 64, 116];
 
 /** Genera un reporte PDF horizontal con encabezado Finesa, resumen y tabla. */
-export function reportePdf(opts: { titulo: string; subtitulo: string; resumen: string[]; columnas: string[]; filas: (string | number)[][]; archivo: string }) {
+export function reportePdf(opts: { titulo: string; subtitulo: string; resumen: string[]; columnas: string[]; filas: (string | number | null | undefined)[][]; archivo: string }) {
   const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
   const w = doc.internal.pageSize.getWidth();
   const generado = new Date().toLocaleString("es-CO", { timeZone: "America/Bogota" });

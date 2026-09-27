@@ -40,6 +40,7 @@ function PerfilEmpleado() {
   const asignados = q.data!.equipos.filter((x) => x.estado === "asignado");
 
   async function onHabilitar() {
+    if (!e?.email) return toast.error("El empleado no tiene correo registrado. Use «Editar» para agregar su correo y luego habilite el acceso.");
     try {
       const r = await habilitar({ data: { empleadoId: id } });
       await navigator.clipboard.writeText(r.url);
@@ -66,7 +67,7 @@ function PerfilEmpleado() {
         {me?.can("empleados_editar") && (
           <>
             <FormEmpleado inicial={{ id: e.id, nombre: e.nombre, identificacion: e.identificacion, email: e.email ?? "", cargo: e.cargo ?? "", area_id: e.area_id ?? "", sede_id: e.sede_id ?? "", empresa_id: e.empresa_id ?? "" }} />
-            {e.activo && <Button variant="outline" onClick={onHabilitar}>{e.user_id ? "Nuevo enlace de acceso" : "Habilitar acceso al portal"}</Button>}
+            {e.activo && <Button variant="outline" onClick={onHabilitar} title={e.email ? undefined : "Primero registre el correo del empleado"}>{e.user_id ? "Nuevo enlace de acceso" : "Habilitar acceso al portal"}</Button>}
             {e.activo ? <Button variant="destructive" onClick={onRetirar}>Retirar</Button> : <Button variant="secondary" onClick={reactivar}>Reactivar</Button>}
           </>
         )}

@@ -84,7 +84,7 @@ function FichaEquipo() {
             {q.data!.h.map((h) => (
               <li key={h.id} className="relative border-l-2 border-accent pb-5 pl-5 last:pb-0">
                 <span className="absolute -left-[7px] top-1 h-3 w-3 rounded-full bg-primary" />
-                <div className="text-xs text-muted-foreground">{fmtFecha(h.created_at, true)} · {h.user_id ? (q.data!.usuarios[h.user_id] ?? "Usuario") : "Sistema"}</div>
+                <div className="text-xs text-muted-foreground">{fmtFecha(h.created_at, true)} · {h.user_id ? (q.data!.usuarios?.[h.user_id] ?? "Usuario") : "Sistema"}</div>
                 <div className="font-medium">{EVENTOS[h.evento] ?? h.evento}</div>
                 {h.detalle && <div className="text-sm text-muted-foreground">{h.detalle.replace(/en_reparacion/g, "en reparación").replace(/de_baja/g, "de baja")}</div>}
                 {h.acta_id && <Link to="/actas/$id" params={{ id: h.acta_id }} className="text-xs text-primary hover:underline">Ver acta</Link>}

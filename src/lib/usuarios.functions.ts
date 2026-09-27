@@ -61,10 +61,10 @@ export const actualizarPermisos = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ userId: z.string().uuid(), permisos: z.array(z.enum(PERMISOS)) }).parse(d))
   .handler(async ({ data, context }) => {
-    await exigirAdmin(context);
+    if (!(await esAdmin(context))) return NO_ADMIN;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: esAux } = await supabaseAdmin.from("user_roles").select("id").eq("user_id", data.userId).eq("role", "auxiliar").maybeSingle();
-    if (!esAux) throw new Error("Solo se pueden configurar permisos de auxiliares.");
+    if (!esAux) return { error: "Solo se pueden configurar permisos de auxiliares." };
     await supabaseAdmin.from("user_permisos").delete().eq("user_id", data.userId);
     if (data.permisos.length) await supabaseAdmin.from("user_permisos").insert(data.permisos.map((p) => ({ user_id: data.userId, permiso: p })));
     await registrarAuditoria(supabaseAdmin, context.userId, "usuarios", "PERMISOS", data.userId, `Permisos actualizados: ${data.permisos.join(", ") || "ninguno"}`);

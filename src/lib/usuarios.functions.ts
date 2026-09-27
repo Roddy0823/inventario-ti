@@ -108,40 +108,62 @@ export const habilitarAccesoEmpleado = createServerFn({ method: "POST" })
     const { data: emp } = await context.supabase.from("empleados").select("*").eq("id", data.empleadoId).maybeSingle();
     if (!emp) return { error: "Empleado no encontrado" };
     if (!emp.activo) return { error: "El empleado está inactivo." };
-    if (!emp.email) return { error: "El empleado no tiene correo registrado." };
-    const email = emp.email.toLowerCase();
+    const { emailEmpleado, passwordEmpleado, generarPin, normalizarCedula } = await import("./acceso-empleado.server");
+    const cedula = normalizarCedula(emp.identificacion);
+    if (!cedula) return { error: "El empleado no tiene número de cédula válido." };
+    const email = emailEmpleado(cedula);
+    const pin = generarPin();
+    const password = passwordEmpleado(cedula, pin);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let userId = emp.user_id;
-    if (!userId) {
-      const { data: u, error } = await supabaseAdmin.auth.admin.createUser({ email, password: passwordTemporal(), email_confirm: true, user_metadata: { nombre: emp.nombre } });
-      if (u?.user) {
-        userId = u.user.id;
-      } else if (error?.message.toLowerCase().includes("already")) {
-        // Cuenta existente (p. ej. intento previo incompleto): reutilizarla si es segura
-        const { data: prof } = await supabaseAdmin.from("profiles").select("id").ilike("email", email).maybeSingle();
-        if (!prof) return { error: "Ese correo ya pertenece a otra cuenta del sistema." };
-        const [{ data: roles }, { data: otro }] = await Promise.all([
-          supabaseAdmin.from("user_roles").select("role").eq("user_id", prof.id),
-          supabaseAdmin.from("empleados").select("id").eq("user_id", prof.id).neq("id", emp.id).maybeSingle(),
-        ]);
-        if (roles?.some((r) => r.role !== "empleado")) return { error: "Ese correo pertenece a un Administrador o Auxiliar. Use otro correo para el empleado." };
-        if (otro) return { error: "Ese correo ya está vinculado a otro empleado." };
-        userId = prof.id;
-        await supabaseAdmin.auth.admin.updateUserById(userId, { ban_duration: "none" });
-      } else {
-        return { error: error?.message ?? "No se pudo crear la cuenta." };
-      }
-      await supabaseAdmin.from("profiles").upsert({ id: userId, email, nombre: emp.nombre, activo: true });
-      await supabaseAdmin.from("user_roles").upsert({ user_id: userId, role: "empleado" }, { onConflict: "user_id,role", ignoreDuplicates: true });
-      await supabaseAdmin.from("empleados").update({ user_id: userId }).eq("id", emp.id);
+    if (userId) {
+      const { data: roles } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId);
+      if (roles?.some((r) => r.role !== "empleado")) return { error: "Este empleado está vinculado a una cuenta de Administrador o Auxiliar." };
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, { email, password, email_confirm: true, ban_duration: "none" });
+      if (error) return { error: error.message };
     } else {
-      await supabaseAdmin.auth.admin.updateUserById(userId, { ban_duration: "none" });
-      await supabaseAdmin.from("profiles").update({ activo: true }).eq("id", userId);
+      const { data: u, error } = await supabaseAdmin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { nombre: emp.nombre } });
+      if (u?.user) userId = u.user.id;
+      else if (error?.message.toLowerCase().includes("already")) {
+        const { data: prof } = await supabaseAdmin.from("profiles").select("id").eq("email", email).maybeSingle();
+        if (!prof) return { error: "Ya existe una cuenta con esa cédula." };
+        const { data: otro } = await supabaseAdmin.from("empleados").select("id").eq("user_id", prof.id).neq("id", emp.id).maybeSingle();
+        if (otro) return { error: "Esa cédula ya está vinculada a otro empleado." };
+        userId = prof.id;
+        await supabaseAdmin.auth.admin.updateUserById(userId, { password, ban_duration: "none" });
+      } else return { error: error?.message ?? "No se pudo crear la cuenta." };
+      await supabaseAdmin.from("user_roles").upsert({ user_id: userId, role: "empleado" }, { onConflict: "user_id,role", ignoreDuplicates: true });
     }
-    const { data: link, error } = await supabaseAdmin.auth.admin.generateLink({ type: "recovery", email, options: { redirectTo: `${origen()}/restablecer` } });
-    if (error) throw new Error(error.message);
-    await registrarAuditoria(supabaseAdmin, context.userId, "empleados", "HABILITAR_ACCESO", emp.id, `Acceso al portal habilitado para ${email}`);
-    return { url: link.properties.action_link };
+    await supabaseAdmin.from("profiles").upsert({ id: userId, email, nombre: emp.nombre, activo: true });
+    await supabaseAdmin.from("empleados").update({ user_id: userId, pin_intentos: 0, pin_bloqueo_hasta: null }).eq("id", emp.id);
+    await registrarAuditoria(supabaseAdmin, context.userId, "empleados", "HABILITAR_ACCESO", emp.id, `PIN de acceso al portal generado para la cédula ${cedula}`);
+    return { cedula, pin };
+  });
+
+export const ingresoEmpleado = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ cedula: z.string().trim().min(3).max(30), pin: z.string().regex(/^\d{4}$/) }).parse(d))
+  .handler(async ({ data }) => {
+    const generico = { error: "Cédula o PIN incorrectos." };
+    const { emailEmpleado, passwordEmpleado, normalizarCedula } = await import("./acceso-empleado.server");
+    const cedula = normalizarCedula(data.cedula);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: lista } = await supabaseAdmin.from("empleados").select("id, identificacion, activo, user_id, pin_intentos, pin_bloqueo_hasta").not("user_id", "is", null).ilike("identificacion", `%${cedula.slice(-4)}%`);
+    const emp = (lista ?? []).find((e) => normalizarCedula(e.identificacion) === cedula);
+    if (!emp || !emp.user_id) return generico;
+    if (!emp.activo) return { error: "Su acceso está suspendido. Comuníquese con la mesa de ayuda." };
+    if (emp.pin_bloqueo_hasta && new Date(emp.pin_bloqueo_hasta) > new Date()) return { error: "Demasiados intentos fallidos. Intente de nuevo en 15 minutos." };
+    const { createClient } = await import("@supabase/supabase-js");
+    const anon = createClient(process.env["SUPABASE_URL"]!, (process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_ANON_KEY"])!, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data: s, error } = await anon.auth.signInWithPassword({ email: emailEmpleado(cedula), password: passwordEmpleado(cedula, data.pin) });
+    if (error || !s.session) {
+      const n = emp.pin_intentos + 1;
+      await supabaseAdmin.from("empleados").update(n >= 5 ? { pin_intentos: 0, pin_bloqueo_hasta: new Date(Date.now() + 15 * 60_000).toISOString() } : { pin_intentos: n }).eq("id", emp.id);
+      if (n >= 5) await registrarAuditoria(supabaseAdmin, emp.user_id, "sesion", "PIN_BLOQUEADO", emp.id, "Acceso bloqueado 15 min por 5 intentos fallidos");
+      return error?.message.includes("banned") ? { error: "Su acceso está suspendido." } : generico;
+    }
+    if (emp.pin_intentos) await supabaseAdmin.from("empleados").update({ pin_intentos: 0 }).eq("id", emp.id);
+    await registrarAuditoria(supabaseAdmin, emp.user_id, "sesion", "LOGIN", emp.id, "Ingreso al portal con cédula y PIN");
+    return { access_token: s.session.access_token, refresh_token: s.session.refresh_token };
   });
 
 export const retirarEmpleado = createServerFn({ method: "POST" })

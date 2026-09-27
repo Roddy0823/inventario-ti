@@ -75,11 +75,11 @@ export const cambiarEstadoUsuario = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ userId: z.string().uuid(), activo: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
-    await exigirAdmin(context);
-    if (data.userId === context.userId) throw new Error("No puede suspender su propia cuenta.");
+    if (!(await esAdmin(context))) return NO_ADMIN;
+    if (data.userId === context.userId) return { error: "No puede suspender su propia cuenta." };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: esAdmin } = await supabaseAdmin.from("user_roles").select("id").eq("user_id", data.userId).eq("role", "admin").maybeSingle();
-    if (esAdmin) throw new Error("Las cuentas de Administrador solo se gestionan en la base de datos.");
+    const { data: esAdm } = await supabaseAdmin.from("user_roles").select("id").eq("user_id", data.userId).eq("role", "admin").maybeSingle();
+    if (esAdm) return { error: "Las cuentas de Administrador solo se gestionan en la base de datos." };
     await supabaseAdmin.auth.admin.updateUserById(data.userId, { ban_duration: data.activo ? "none" : "876000h" });
     await supabaseAdmin.from("profiles").update({ activo: data.activo }).eq("id", data.userId);
     await registrarAuditoria(supabaseAdmin, context.userId, "usuarios", data.activo ? "REACTIVAR" : "SUSPENDER", data.userId, data.activo ? "Cuenta reactivada" : "Cuenta suspendida");

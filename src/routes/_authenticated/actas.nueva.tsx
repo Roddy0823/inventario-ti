@@ -1,3 +1,4 @@
+import { fetchAll } from "@/lib/fetchAll";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -30,8 +31,8 @@ function NuevaActa() {
   const [obs, setObs] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const emps = useQuery({ queryKey: ["empleados"], queryFn: async () => (await supabase.from("empleados").select("*").order("nombre")).data ?? [] });
-  const eqs = useQuery({ queryKey: ["equipos"], queryFn: async () => (await supabase.from("equipos").select("*, empleado:empleados(id, nombre)").order("created_at", { ascending: false })).data ?? [] });
+  const emps = useQuery({ queryKey: ["empleados"], queryFn: () => fetchAll((a, b) => supabase.from("empleados").select("*").order("nombre").order("id").range(a, b)) });
+  const eqs = useQuery({ queryKey: ["equipos"], queryFn: () => fetchAll((a, b) => supabase.from("equipos").select("*, empleado:empleados(id, nombre)").order("created_at", { ascending: false }).order("id").range(a, b)) });
 
   const empleados = (emps.data ?? []).filter((e) => (tipo === "devolucion" || e.activo) && (!buscaEmp || e.nombre.toLowerCase().includes(buscaEmp.toLowerCase()) || e.identificacion.includes(buscaEmp)));
   const disponibles = useMemo(() => (eqs.data ?? []).filter((e) =>

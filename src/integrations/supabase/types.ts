@@ -297,59 +297,77 @@ export type Database = {
       }
       equipos: {
         Row: {
+          activo_fijo: string | null
+          anio_compra: number | null
           codigo_interno: boolean
           created_at: string
           created_by: string | null
           empleado_id: string | null
           estado: Database["public"]["Enums"]["equipo_estado"]
+          factura_numero: string | null
           factura_path: string | null
           fecha_ingreso: string
           garantia_fin: string | null
           id: string
           marca_id: string | null
           modelo: string | null
+          nombre_equipo: string | null
+          novedad: string | null
           observaciones: string | null
           proveedor: string | null
           sede_id: string | null
           serie: string
+          sistema_operativo: string | null
           tipo_id: string
           updated_at: string
         }
         Insert: {
+          activo_fijo?: string | null
+          anio_compra?: number | null
           codigo_interno?: boolean
           created_at?: string
           created_by?: string | null
           empleado_id?: string | null
           estado?: Database["public"]["Enums"]["equipo_estado"]
+          factura_numero?: string | null
           factura_path?: string | null
           fecha_ingreso?: string
           garantia_fin?: string | null
           id?: string
           marca_id?: string | null
           modelo?: string | null
+          nombre_equipo?: string | null
+          novedad?: string | null
           observaciones?: string | null
           proveedor?: string | null
           sede_id?: string | null
           serie: string
+          sistema_operativo?: string | null
           tipo_id: string
           updated_at?: string
         }
         Update: {
+          activo_fijo?: string | null
+          anio_compra?: number | null
           codigo_interno?: boolean
           created_at?: string
           created_by?: string | null
           empleado_id?: string | null
           estado?: Database["public"]["Enums"]["equipo_estado"]
+          factura_numero?: string | null
           factura_path?: string | null
           fecha_ingreso?: string
           garantia_fin?: string | null
           id?: string
           marca_id?: string | null
           modelo?: string | null
+          nombre_equipo?: string | null
+          novedad?: string | null
           observaciones?: string | null
           proveedor?: string | null
           sede_id?: string | null
           serie?: string
+          sistema_operativo?: string | null
           tipo_id?: string
           updated_at?: string
         }
@@ -497,6 +515,7 @@ export type Database = {
         Args: { p_acta: string; p_motivo: string }
         Returns: undefined
       }
+      asignar_carga_inicial: { Args: { p_items: Json }; Returns: number }
       cambiar_estado_equipo: {
         Args: {
           p_equipo: string

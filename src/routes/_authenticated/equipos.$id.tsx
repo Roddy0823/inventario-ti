@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/equipos/$id")({
 
 const EVENTOS: Record<string, string> = {
   ingreso: "Ingreso", entrega: "Entrega", devolucion: "Devolución", en_reparacion: "En reparación", de_baja: "De baja",
-  disponible: "Disponible", correccion_serie: "Corrección de serie", acta_anulada: "Acta anulada",
+  disponible: "Disponible", correccion_serie: "Corrección de serie", acta_anulada: "Acta anulada", carga_inicial: "Asignación por carga inicial",
 };
 
 function FichaEquipo() {
@@ -65,6 +65,12 @@ function FichaEquipo() {
           <Dato k="Fin de garantía" v={fmtFecha(e.garantia_fin)} />
           <Dato k="Proveedor" v={e.proveedor ?? "—"} />
           <Dato k="Código interno" v={e.codigo_interno ? "Sí" : "No"} />
+          <Dato k="Activo fijo" v={e.activo_fijo ?? "—"} />
+          <Dato k="Año de compra" v={e.anio_compra ?? "—"} />
+          <Dato k="Nombre de equipo" v={e.nombre_equipo ?? "—"} />
+          <Dato k="Factura" v={e.factura_numero ?? "—"} />
+          <div className="col-span-2"><Dato k="Sistema operativo" v={e.sistema_operativo ?? "—"} /></div>
+          <div className="col-span-2"><Dato k="Novedad" v={e.novedad ?? "—"} /></div>
           <div className="col-span-2"><dt className="text-xs text-muted-foreground">Observaciones</dt><dd className="whitespace-pre-wrap">{e.observaciones || "—"}</dd></div>
           {e.factura_path && <div className="col-span-2"><Button size="sm" variant="outline" onClick={verFactura}>Ver factura</Button></div>}
         </dl>

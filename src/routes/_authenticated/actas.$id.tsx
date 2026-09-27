@@ -72,7 +72,7 @@ function DetalleActa() {
     } catch (e) { toast.error(errMsg(e)); } finally { setFirmando(false); }
   }
   async function descargar() {
-    await descargarPdfActa(url, id, `acta-${a.numero}.pdf`);
+    await descargarPdfActa(url, id, `acta-${a?.numero ?? id.slice(0, 8)}.pdf`);
   }
 
 

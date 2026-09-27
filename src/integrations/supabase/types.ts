@@ -76,6 +76,7 @@ export type Database = {
           numero: number
           observaciones: string | null
           pdf_path: string | null
+          tecnico_firma_path: string | null
           tecnico_id: string
           tecnico_nombre: string | null
           tipo: Database["public"]["Enums"]["acta_tipo"]
@@ -97,6 +98,7 @@ export type Database = {
           numero?: never
           observaciones?: string | null
           pdf_path?: string | null
+          tecnico_firma_path?: string | null
           tecnico_id?: string
           tecnico_nombre?: string | null
           tipo: Database["public"]["Enums"]["acta_tipo"]
@@ -118,6 +120,7 @@ export type Database = {
           numero?: never
           observaciones?: string | null
           pdf_path?: string | null
+          tecnico_firma_path?: string | null
           tecnico_id?: string
           tecnico_nombre?: string | null
           tipo?: Database["public"]["Enums"]["acta_tipo"]
@@ -422,6 +425,7 @@ export type Database = {
           activo: boolean
           created_at: string
           email: string
+          firma_path: string | null
           id: string
           nombre: string
           updated_at: string
@@ -430,6 +434,7 @@ export type Database = {
           activo?: boolean
           created_at?: string
           email?: string
+          firma_path?: string | null
           id: string
           nombre?: string
           updated_at?: string
@@ -438,6 +443,7 @@ export type Database = {
           activo?: boolean
           created_at?: string
           email?: string
+          firma_path?: string | null
           id?: string
           nombre?: string
           updated_at?: string

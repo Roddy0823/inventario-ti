@@ -68,26 +68,32 @@ function Reportes() {
   async function actas(formato: "csv" | "pdf") {
     setCargando(true);
     try {
-      const data = await fetchAll((a, b) => supabase.from("actas").select("*, empleado:empleados(nombre, identificacion), items:acta_items(count)").eq("estado", "firmada").gte("firmado_at", desde).lte("firmado_at", hasta + "T23:59:59").order("firmado_at").order("id").range(a, b));
+      const data = await fetchAll((a, b) => supabase.from("actas").select("*, empleado:empleados(nombre, identificacion), items:acta_items(estado_fisico, equipo:equipos(serie, activo_fijo, modelo, tipo_id, marca_id))").eq("estado", "firmada").gte("firmado_at", desde).lte("firmado_at", hasta + "T23:59:59").order("firmado_at").order("id").range(a, b));
       if (!data?.length) return toast.info("No hay actas firmadas en el periodo");
-      const n = (a: (typeof data)[number]) => (a.items as unknown as { count: number }[] | null)?.[0]?.count ?? 0;
+      type It = { estado_fisico: string | null; equipo: { serie: string; activo_fijo: string | null; modelo: string | null; tipo_id: string; marca_id: string | null } | null };
+      const filas = data.flatMap((a) => {
+        const emp = a.empleado as Emp;
+        const items = ((a.items ?? []) as unknown as It[]).filter((i) => i.equipo);
+        return items.map((i) => ({ a, emp, e: i.equipo!, estado: i.estado_fisico ?? "" }));
+      });
+      const ent = data.filter((a) => a.tipo === "entrega").length;
+      const eqEnt = filas.filter((f) => f.a.tipo === "entrega").length;
       if (formato === "csv") {
-        descargarCSV(`actas_firmadas_${desde}_${hasta}.csv`, data.map((a) => {
-          const emp = a.empleado as Emp;
-          return { numero: a.numero, tipo: TIPO_ACTA[a.tipo], empleado: emp?.nombre ?? "", identificacion: emp?.identificacion ?? "", tecnico: a.tecnico_nombre ?? "", creada: a.created_at, firmada: a.firmado_at, medio: a.firma_medio ?? "", ip: a.firma_ip ?? "", equipos: n(a) };
-        }));
+        descargarCSV(`actas_firmadas_${desde}_${hasta}.csv`, filas.map(({ a, emp, e, estado }) => ({
+          numero_acta: a.numero, tipo: TIPO_ACTA[a.tipo], fecha_firma: fmtFecha(a.firmado_at, true), empleado: emp?.nombre ?? "", identificacion: emp?.identificacion ?? "", tecnico: a.tecnico_nombre ?? "",
+          tipo_equipo: cat.nombre(e.tipo_id), marca: cat.nombre(e.marca_id), modelo: e.modelo ?? "", serie: e.serie, activo_fijo: e.activo_fijo ?? "", estado_fisico: estado, medio_firma: a.firma_medio ?? "",
+        })));
       } else {
-        const ent = data.filter((a) => a.tipo === "entrega").length;
         reportePdf({
-          titulo: "REPORTE DE ACTAS FIRMADAS",
+          titulo: "REPORTE DE ACTAS FIRMADAS — DETALLE DE EQUIPOS",
           subtitulo: `Periodo: ${fmtFecha(desde)} a ${fmtFecha(hasta)}`,
-          resumen: [`Total actas: ${data.length}`, `Entregas: ${ent}`, `Devoluciones: ${data.length - ent}`, `Equipos: ${data.reduce((s, a) => s + n(a), 0)}`],
-          columnas: ["No.", "Tipo", "Empleado", "Cédula", "Técnico", "Fecha de firma", "Medio", "Equipos"],
-          filas: data.map((a) => { const emp = a.empleado as Emp; return [a.numero, TIPO_ACTA[a.tipo], emp?.nombre ?? "", emp?.identificacion ?? "", a.tecnico_nombre ?? "", fmtFecha(a.firmado_at, true), a.firma_medio ?? "", n(a)]; }),
+          resumen: [`Actas: ${data.length} (${ent} entregas, ${data.length - ent} devoluciones)`, `Equipos entregados: ${eqEnt}`, `Equipos devueltos: ${filas.length - eqEnt}`],
+          columnas: ["Acta", "Tipo", "Fecha de firma", "Empleado", "Cédula", "Técnico", "Tipo equipo", "Marca", "Modelo", "Serie", "Activo fijo"],
+          filas: filas.map(({ a, emp, e }) => [`#${a.numero}`, TIPO_ACTA[a.tipo], fmtFecha(a.firmado_at, true), emp?.nombre ?? "", emp?.identificacion ?? "", a.tecnico_nombre ?? "", cat.nombre(e.tipo_id), cat.nombre(e.marca_id), e.modelo ?? "", e.serie, e.activo_fijo ?? ""]),
           archivo: `actas_firmadas_${desde}_${hasta}.pdf`,
         });
       }
-      await supabase.rpc("log_evento", { p_accion: "EXPORTAR", p_detalle: `Actas firmadas ${desde} a ${hasta} (${formato.toUpperCase()})` });
+      await supabase.rpc("log_evento", { p_accion: "EXPORTAR", p_detalle: `Actas firmadas con detalle de equipos ${desde} a ${hasta} (${formato.toUpperCase()})` });
     } catch (e) { toast.error((e as Error).message); } finally { setCargando(false); }
   }
 

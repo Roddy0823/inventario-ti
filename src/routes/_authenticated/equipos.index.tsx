@@ -1,7 +1,7 @@
 import { fetchAll } from "@/lib/fetchAll";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
 import { useCatalogos } from "@/lib/catalogos";
@@ -17,6 +17,10 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/equipos/")({
+  validateSearch: (s: Record<string, unknown>): { tab?: "activos" | "en_reparacion" | "de_baja" | undefined; estado?: "disponible" | "asignado" | undefined } => ({
+    tab: s.tab === "en_reparacion" || s.tab === "de_baja" || s.tab === "activos" ? s.tab : undefined,
+    estado: s.estado === "disponible" || s.estado === "asignado" ? s.estado : undefined,
+  }),
   head: () => ({ meta: [{ title: "Inventario — Finesa" }, { name: "description", content: "Equipos de cómputo y periféricos." }] }),
   component: Equipos,
 });
@@ -36,8 +40,10 @@ function Equipos() {
   const { data: me } = useMe();
   const cat = useCatalogos();
   const q = useQuery(equiposQuery);
-  const [tab, setTab] = useState<Pestana>("activos");
-  const [f, setF] = useState({ texto: "", tipo: "", marca: "", estado: "", sede: "" });
+  const sp = Route.useSearch();
+  const [tab, setTab] = useState<Pestana>(sp.tab ?? "activos");
+  const [f, setF] = useState({ texto: "", tipo: "", marca: "", estado: sp.estado ?? "", sede: "" });
+  useEffect(() => { setTab(sp.tab ?? "activos"); setF((x) => ({ ...x, estado: sp.estado ?? "" })); }, [sp.tab, sp.estado]);
   const conteo = useMemo(() => {
     const d = q.data ?? [];
     return { activos: d.filter((e) => e.estado === "disponible" || e.estado === "asignado").length, en_reparacion: d.filter((e) => e.estado === "en_reparacion").length, de_baja: d.filter((e) => e.estado === "de_baja").length };

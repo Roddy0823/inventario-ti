@@ -5,7 +5,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
 import { PERMISOS, errMsg, type Permiso } from "@/lib/constantes";
-import { actualizarPermisos, cambiarEstadoUsuario, crearAuxiliar, eliminarAuxiliar } from "@/lib/usuarios.functions";
+import { actualizarPermisos, cambiarEstadoUsuario, cambiarPasswordAuxiliar, crearAuxiliar, eliminarAuxiliar } from "@/lib/usuarios.functions";
 import { PageHeader } from "@/components/Estado";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,6 +88,7 @@ function FilaUsuario({ u, esYo }: { u: Fila; esYo: boolean }) {
         {!admin && !esYo && (
           <div className="flex flex-wrap justify-end gap-2">
             <EditarPermisos u={u} />
+            <CambiarPassword u={u} />
             <Button size="sm" variant={u.activo ? "destructive" : "secondary"} onClick={toggle}>{u.activo ? "Suspender" : "Reactivar"}</Button>
             <Button size="sm" variant="outline" className="text-destructive" onClick={borrar}>Eliminar</Button>
           </div>
@@ -160,6 +161,38 @@ function NuevoAuxiliar() {
           <div className="space-y-1.5"><Label>Contraseña temporal (mín. 8)</Label><Input required minLength={8} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></div>
           <div><Label className="mb-2 block">Permisos</Label><SelectorPermisos value={sel} onChange={setSel} /></div>
           <DialogFooter><Button type="submit" disabled={loading}>Crear auxiliar</Button></DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CambiarPassword({ u }: { u: Fila }) {
+  const fn = useServerFn(cambiarPasswordAuxiliar);
+  const [open, setOpen] = useState(false);
+  const [p1, setP1] = useState("");
+  const [p2, setP2] = useState("");
+  const [loading, setLoading] = useState(false);
+  async function guardar(e: React.FormEvent) {
+    e.preventDefault();
+    if (p1 !== p2) { toast.error("Las contraseñas no coinciden"); return; }
+    setLoading(true);
+    try {
+      const r = await fn({ data: { userId: u.id, password: p1 } });
+      if ("error" in r && r.error) { toast.error(r.error); return; }
+      toast.success("Contraseña actualizada. Compártala de forma segura.");
+      setOpen(false);
+    } catch (e) { toast.error(errMsg(e)); } finally { setLoading(false); }
+  }
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setP1(""); setP2(""); } }}>
+      <DialogTrigger asChild><Button size="sm" variant="outline">Contraseña</Button></DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Nueva contraseña para {u.nombre || u.email}</DialogTitle></DialogHeader>
+        <form onSubmit={guardar} className="space-y-4">
+          <div className="space-y-1.5"><Label>Nueva contraseña (mín. 8)</Label><Input type="password" required minLength={8} value={p1} onChange={(e) => setP1(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>Confirmar contraseña</Label><Input type="password" required minLength={8} value={p2} onChange={(e) => setP2(e.target.value)} /></div>
+          <DialogFooter><Button type="submit" disabled={loading}>Cambiar contraseña</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

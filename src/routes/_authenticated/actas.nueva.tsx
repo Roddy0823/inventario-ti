@@ -1,6 +1,9 @@
 import { fetchAll } from "@/lib/fetchAll";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
+import { adjuntarFirmaTecnico, obtenerMiFirma } from "@/lib/ajustes.functions";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
@@ -34,6 +37,9 @@ function NuevaActa() {
   const [det, setDet] = useState<Record<string, { estado_fisico: string; accesorios: string; nota: string }>>({});
   const [obs, setObs] = useState("");
   const [loading, setLoading] = useState(false);
+  const adjuntar = useServerFn(adjuntarFirmaTecnico);
+  const verFirma = useServerFn(obtenerMiFirma);
+  const miFirma = useQuery({ queryKey: ["mi-firma"], queryFn: () => verFirma() });
 
   const emps = useQuery({ queryKey: ["empleados"], queryFn: () => fetchAll((a, b) => supabase.from("empleados").select("*").order("nombre").order("id").range(a, b)) });
   const eqs = useQuery({ queryKey: ["equipos"], queryFn: () => fetchAll((a, b) => supabase.from("equipos").select("*, empleado:empleados(id, nombre)").order("created_at", { ascending: false }).order("id").range(a, b)) });
@@ -63,6 +69,7 @@ function NuevaActa() {
         return { acta_id: acta.id, equipo_id, estado_fisico: d?.estado_fisico ?? "Bueno", accesorios: d?.accesorios.trim() || null, nota: d?.nota.trim() || null };
       }));
       if (e2) throw e2;
+      try { await adjuntar({ data: { actaId: acta.id } }); } catch { /* la firma del técnico es opcional */ }
       toast.success("Acta creada. Proceda con la firma.");
       nav({ to: "/actas/$id", params: { id: acta.id } });
     } catch (e) { toast.error(errMsg(e)); } finally { setLoading(false); }
@@ -73,6 +80,7 @@ function NuevaActa() {
   return (
     <div className="max-w-4xl">
       <PageHeader title="Nueva acta" desc="Seleccione empleado y equipos. El estado de los equipos cambia solo cuando el acta queda firmada." />
+      {miFirma.data && !miFirma.data.url && <div className="mb-4 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm">No tiene una firma registrada; el acta saldrá sin firma del técnico. <Link to="/ajustes" search={{ tab: "firma" }} className="font-medium text-primary underline">Registrar mi firma</Link></div>}
       <div className="mb-6 inline-flex rounded-md border border-border bg-card p-1">
         {me.can("actas_entrega") && <button onClick={() => { setTipo("entrega"); setSel([]); }} className={`rounded px-4 py-1.5 text-sm ${tipo === "entrega" ? "bg-primary text-primary-foreground" : ""}`}>Entrega</button>}
         {me.can("actas_devolucion") && <button onClick={() => { setTipo("devolucion"); setSel([]); }} className={`rounded px-4 py-1.5 text-sm ${tipo === "devolucion" ? "bg-primary text-primary-foreground" : ""}`}>Devolución</button>}

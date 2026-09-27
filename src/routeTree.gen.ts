@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as RecuperarRouteImport } from './routes/recuperar'
 import { Route as RestablecerRouteImport } from './routes/restablecer'
+import { Route as AuthenticatedAjustesRouteImport } from './routes/_authenticated/ajustes'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedCargaMasivaRouteImport } from './routes/_authenticated/carga-masiva'
 import { Route as AuthenticatedCatalogosRouteImport } from './routes/_authenticated/catalogos'
@@ -47,6 +48,11 @@ const RestablecerRoute = RestablecerRouteImport.update({
   id: '/restablecer',
   path: '/restablecer',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAjustesRoute = AuthenticatedAjustesRouteImport.update({
+  id: '/ajustes',
+  path: '/ajustes',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
   id: '/auditoria',
@@ -132,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
+  '/ajustes': typeof AuthenticatedAjustesRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/carga-masiva': typeof AuthenticatedCargaMasivaRoute
   '/catalogos': typeof AuthenticatedCatalogosRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
+  '/ajustes': typeof AuthenticatedAjustesRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/carga-masiva': typeof AuthenticatedCargaMasivaRoute
   '/catalogos': typeof AuthenticatedCatalogosRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
+  '/_authenticated/ajustes': typeof AuthenticatedAjustesRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/carga-masiva': typeof AuthenticatedCargaMasivaRoute
   '/_authenticated/catalogos': typeof AuthenticatedCatalogosRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/'
     | '/recuperar'
     | '/restablecer'
+    | '/ajustes'
     | '/auditoria'
     | '/carga-masiva'
     | '/catalogos'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/'
     | '/recuperar'
     | '/restablecer'
+    | '/ajustes'
     | '/auditoria'
     | '/carga-masiva'
     | '/catalogos'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/recuperar'
     | '/restablecer'
+    | '/_authenticated/ajustes'
     | '/_authenticated/auditoria'
     | '/_authenticated/carga-masiva'
     | '/_authenticated/catalogos'
@@ -291,6 +303,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/restablecer'
       preLoaderRoute: typeof RestablecerRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/ajustes': {
+      id: '/_authenticated/ajustes'
+      path: '/ajustes'
+      fullPath: '/ajustes'
+      preLoaderRoute: typeof AuthenticatedAjustesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/auditoria': {
       id: '/_authenticated/auditoria'
@@ -401,6 +420,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAjustesRoute: typeof AuthenticatedAjustesRoute
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
   AuthenticatedCargaMasivaRoute: typeof AuthenticatedCargaMasivaRoute
   AuthenticatedCatalogosRoute: typeof AuthenticatedCatalogosRoute
@@ -418,6 +438,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAjustesRoute: AuthenticatedAjustesRoute,
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
   AuthenticatedCargaMasivaRoute: AuthenticatedCargaMasivaRoute,
   AuthenticatedCatalogosRoute: AuthenticatedCatalogosRoute,

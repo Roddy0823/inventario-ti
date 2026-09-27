@@ -38,8 +38,8 @@ function Panel() {
         {(me?.can("actas_entrega") || me?.can("actas_devolucion")) && <Button asChild><Link to="/actas/nueva">Nueva acta</Link></Button>}
       </PageHeader>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Stat label="Equipos totales" value={s?.total} />
-        {Object.entries(ESTADO_EQUIPO).map(([k, v]) => <Stat key={k} label={v.label} value={s?.conteo[k] ?? 0} />)}
+        <Stat label="Equipos totales" value={s?.total} search={{ tab: "activos" }} />
+        {Object.entries(ESTADO_EQUIPO).map(([k, v]) => <Stat key={k} label={v.label} value={s?.conteo[k] ?? 0} search={k === "disponible" || k === "asignado" ? { tab: "activos", estado: k } : { tab: k as "en_reparacion" | "de_baja" }} />)}
       </div>
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <div className="rounded-md border border-border bg-card p-5">
@@ -66,11 +66,11 @@ function Panel() {
   );
 }
 
-function Stat({ label, value }: { label: string; value?: number | undefined }) {
+function Stat({ label, value, search }: { label: string; value?: number | undefined; search: { tab?: "activos" | "en_reparacion" | "de_baja"; estado?: "disponible" | "asignado" } }) {
   return (
-    <div className="rounded-md border border-border bg-card p-4">
+    <Link to="/equipos" search={search} className="block rounded-md border border-border bg-card p-4 transition-colors hover:border-primary hover:bg-muted">
       <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="mt-1 font-display text-3xl font-bold">{value ?? "—"}</div>
-    </div>
+    </Link>
   );
 }

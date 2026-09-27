@@ -534,6 +534,10 @@ export type Database = {
         Args: { p_equipo: string; p_motivo: string; p_serie: string }
         Returns: undefined
       }
+      finalizar_reparacion: {
+        Args: { p_devolver: boolean; p_equipo: string; p_motivo: string }
+        Returns: undefined
+      }
       has_permiso: {
         Args: {
           _p: Database["public"]["Enums"]["app_permiso"]

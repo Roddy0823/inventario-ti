@@ -43,6 +43,7 @@ function PerfilEmpleado() {
     if (!e?.email) return toast.error("El empleado no tiene correo registrado. Use «Editar» para agregar su correo y luego habilite el acceso.");
     try {
       const r = await habilitar({ data: { empleadoId: id } });
+      if ("error" in r) return toast.error(r.error);
       await navigator.clipboard.writeText(r.url);
       toast.success("Enlace copiado. Envíelo al empleado para que defina su contraseña.");
       qc.invalidateQueries({ queryKey: ["empleado", id] });

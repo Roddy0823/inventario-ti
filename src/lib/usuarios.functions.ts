@@ -104,20 +104,35 @@ export const habilitarAccesoEmpleado = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ empleadoId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: ok } = await context.supabase.rpc("has_permiso", { _user_id: context.userId, _p: "empleados_editar" });
-    if (!ok) throw new Error("No tiene permiso para habilitar accesos.");
+    if (!ok) return { error: "No tiene permiso para habilitar accesos." };
     const { data: emp } = await context.supabase.from("empleados").select("*").eq("id", data.empleadoId).maybeSingle();
-    if (!emp) throw new Error("Empleado no encontrado");
-    if (!emp.activo) throw new Error("El empleado está inactivo.");
-    if (!emp.email) throw new Error("El empleado no tiene correo registrado.");
+    if (!emp) return { error: "Empleado no encontrado" };
+    if (!emp.activo) return { error: "El empleado está inactivo." };
+    if (!emp.email) return { error: "El empleado no tiene correo registrado." };
     const email = emp.email.toLowerCase();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let userId = emp.user_id;
     if (!userId) {
       const { data: u, error } = await supabaseAdmin.auth.admin.createUser({ email, password: passwordTemporal(), email_confirm: true, user_metadata: { nombre: emp.nombre } });
-      if (error || !u.user) throw new Error(error?.message.includes("already") ? "Ese correo ya pertenece a otra cuenta del sistema." : error?.message ?? "Error");
-      userId = u.user.id;
+      if (u?.user) {
+        userId = u.user.id;
+      } else if (error?.message.toLowerCase().includes("already")) {
+        // Cuenta existente (p. ej. intento previo incompleto): reutilizarla si es segura
+        const { data: prof } = await supabaseAdmin.from("profiles").select("id").ilike("email", email).maybeSingle();
+        if (!prof) return { error: "Ese correo ya pertenece a otra cuenta del sistema." };
+        const [{ data: roles }, { data: otro }] = await Promise.all([
+          supabaseAdmin.from("user_roles").select("role").eq("user_id", prof.id),
+          supabaseAdmin.from("empleados").select("id").eq("user_id", prof.id).neq("id", emp.id).maybeSingle(),
+        ]);
+        if (roles?.some((r) => r.role !== "empleado")) return { error: "Ese correo pertenece a un Administrador o Auxiliar. Use otro correo para el empleado." };
+        if (otro) return { error: "Ese correo ya está vinculado a otro empleado." };
+        userId = prof.id;
+        await supabaseAdmin.auth.admin.updateUserById(userId, { ban_duration: "none" });
+      } else {
+        return { error: error?.message ?? "No se pudo crear la cuenta." };
+      }
       await supabaseAdmin.from("profiles").upsert({ id: userId, email, nombre: emp.nombre, activo: true });
-      await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: "empleado" });
+      await supabaseAdmin.from("user_roles").upsert({ user_id: userId, role: "empleado" }, { onConflict: "user_id,role", ignoreDuplicates: true });
       await supabaseAdmin.from("empleados").update({ user_id: userId }).eq("id", emp.id);
     } else {
       await supabaseAdmin.auth.admin.updateUserById(userId, { ban_duration: "none" });

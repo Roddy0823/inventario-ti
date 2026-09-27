@@ -7,6 +7,7 @@ import { useMe } from "@/lib/me";
 import { useCatalogos } from "@/lib/catalogos";
 import { TIPO_ACTA, errMsg, fmtFecha } from "@/lib/constantes";
 import { firmarComoEmpleado, urlArchivo } from "@/lib/firmas.functions";
+import { descargarPdfActa } from "@/lib/descargarPdf";
 import { PageHeader, EstadoActa } from "@/components/Estado";
 import { ActaResumen } from "@/components/ActaResumen";
 import { SignaturePad } from "@/components/SignaturePad";
@@ -46,9 +47,10 @@ function Portal() {
   const historial = actas.filter((a) => a.estado !== "pendiente");
   const actaAbierta = actas.find((a) => a.id === abierta);
 
-  async function descargar(id: string) {
-    try { const r = await url({ data: { actaId: id } }); window.open(r.url, "_blank"); } catch (e) { toast.error(errMsg(e)); }
+  async function descargar(id: string, numero: number) {
+    await descargarPdfActa(url, id, `acta-${numero}.pdf`);
   }
+
 
   return (
     <div className="max-w-4xl">
@@ -80,7 +82,7 @@ function Portal() {
             {historial.map((a) => (
               <li key={a.id} className="flex items-center justify-between gap-2 px-5 py-3 text-sm">
                 <span>{TIPO_ACTA[a.tipo]} #{a.numero}<div className="text-xs text-muted-foreground">{fmtFecha(a.firmado_at ?? a.created_at)}</div></span>
-                <span className="flex items-center gap-2"><EstadoActa estado={a.estado} />{a.pdf_path && <Button size="icon" variant="ghost" onClick={() => descargar(a.id)} aria-label="Descargar"><Download className="h-4 w-4" /></Button>}</span>
+                <span className="flex items-center gap-2"><EstadoActa estado={a.estado} />{a.pdf_path && <Button size="icon" variant="ghost" onClick={() => descargar(a.id, a.numero)} aria-label="Descargar"><Download className="h-4 w-4" /></Button>}</span>
               </li>
             ))}
             {!historial.length && <li className="px-5 py-6 text-sm text-muted-foreground">Sin actas.</li>}

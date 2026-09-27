@@ -7,6 +7,7 @@ import { useMe } from "@/lib/me";
 import { useCatalogos } from "@/lib/catalogos";
 import { errMsg, fmtFecha } from "@/lib/constantes";
 import { crearEnlaceFirma, firmarPresencial, urlArchivo } from "@/lib/firmas.functions";
+import { descargarPdfActa } from "@/lib/descargarPdf";
 import { PageHeader, EstadoActa } from "@/components/Estado";
 import { ActaResumen } from "@/components/ActaResumen";
 import { SignaturePad } from "@/components/SignaturePad";
@@ -71,8 +72,9 @@ function DetalleActa() {
     } catch (e) { toast.error(errMsg(e)); } finally { setFirmando(false); }
   }
   async function descargar() {
-    try { const r = await url({ data: { actaId: id } }); window.open(r.url, "_blank"); } catch (e) { toast.error(errMsg(e)); }
+    await descargarPdfActa(url, id, `acta-${a?.numero ?? id.slice(0, 8)}.pdf`);
   }
+
 
   const puedeFirmar = a.estado === "pendiente" && me?.can("firmas_capturar");
   return (

@@ -5,8 +5,9 @@ import { useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
-import { TIPO_ACTA, ESTADO_ACTA, errMsg, fmtFecha } from "@/lib/constantes";
+import { TIPO_ACTA, ESTADO_ACTA, fmtFecha } from "@/lib/constantes";
 import { urlArchivo } from "@/lib/firmas.functions";
+import { descargarPdfActa } from "@/lib/descargarPdf";
 import { PageHeader, EstadoActa } from "@/components/Estado";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -38,8 +39,8 @@ function Repositorio() {
       return (data ?? []).filter((a) => { const e = a.empleado as { nombre: string; identificacion: string } | null; return !t || (e && (e.nombre.toLowerCase().includes(t) || e.identificacion.includes(t))); });
     },
   });
-  async function descargar(id: string) {
-    try { const r = await url({ data: { actaId: id } }); window.open(r.url, "_blank"); } catch (e) { toast.error(errMsg(e)); }
+  async function descargar(id: string, numero: number) {
+    await descargarPdfActa(url, id, `acta-${numero}.pdf`);
   }
   const s = "h-9 rounded-md border border-input bg-card px-3 text-sm";
   const puedeVer = me?.can("repositorio_ver");
@@ -67,7 +68,7 @@ function Repositorio() {
                 <td className="px-4 py-2.5 text-xs">{fmtFecha(a.created_at)}</td>
                 <td className="px-4 py-2.5 text-xs">{fmtFecha(a.firmado_at, true)}</td>
                 <td className="px-4 py-2.5"><EstadoActa estado={a.estado} /></td>
-                <td className="px-4 py-2.5 text-right">{a.pdf_path && puedeVer && <Button size="icon" variant="ghost" onClick={() => descargar(a.id)} aria-label="Descargar PDF"><Download className="h-4 w-4" /></Button>}</td>
+                <td className="px-4 py-2.5 text-right">{a.pdf_path && puedeVer && <Button size="icon" variant="ghost" onClick={() => descargar(a.id, a.numero)} aria-label="Descargar PDF"><Download className="h-4 w-4" /></Button>}</td>
               </tr>
             ))}
             {!q.isLoading && !q.data?.length && <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No hay actas.</td></tr>}

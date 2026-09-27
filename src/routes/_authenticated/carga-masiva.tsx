@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/Estado";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { ImportExcel } from "@/components/ImportExcel";
 
 export const Route = createFileRoute("/_authenticated/carga-masiva")({
   head: () => ({ meta: [{ title: "Carga masiva — Finesa" }, { name: "description", content: "Importar equipos y empleados por CSV." }] }),
@@ -27,7 +28,7 @@ function CargaMasiva() {
   const { data: me } = useMe();
   const cat = useCatalogos();
   const qc = useQueryClient();
-  const [tipo, setTipo] = useState<"equipos" | "empleados">("equipos");
+  const [tipo, setTipo] = useState<"excel" | "equipos" | "empleados">("excel");
   const [filas, setFilas] = useState<Fila[]>([]);
   const [procesando, setProcesando] = useState(false);
 
@@ -121,15 +122,16 @@ function CargaMasiva() {
       <PageHeader title="Carga masiva" desc="Importe desde CSV. Se valida todo antes de guardar; nada se inserta mientras haya errores." />
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="inline-flex rounded-md border border-border bg-card p-1">
-          {(["equipos", "empleados"] as const).map((t) => (
-            <button key={t} onClick={() => { setTipo(t); setFilas([]); }} className={`rounded px-4 py-1.5 text-sm capitalize ${tipo === t ? "bg-primary text-primary-foreground" : ""}`}>{t}</button>
+          {(["excel", "equipos", "empleados"] as const).map((t) => (
+            <button key={t} onClick={() => { setTipo(t); setFilas([]); }} className={`rounded px-4 py-1.5 text-sm ${tipo === t ? "bg-primary text-primary-foreground" : ""}`}>{t === "excel" ? "Excel completo" : t === "equipos" ? "Equipos (CSV)" : "Empleados (CSV)"}</button>
           ))}
         </div>
-        <Button variant="outline" onClick={plantilla}>Descargar plantilla</Button>
-        <Input type="file" accept=".csv,text/csv" className="w-auto" onChange={(e) => { const f = e.target.files?.[0]; if (f) leer(f); e.target.value = ""; }} />
+        {tipo !== "excel" && <><Button variant="outline" onClick={plantilla}>Descargar plantilla</Button>
+        <Input type="file" accept=".csv,text/csv" className="w-auto" onChange={(e) => { const f = e.target.files?.[0]; if (f) leer(f); e.target.value = ""; }} /></>}
       </div>
+      {tipo === "excel" && <ImportExcel isAdmin={!!me?.isAdmin} />}
       <p className="mb-4 text-xs text-muted-foreground">Los nombres de tipo, marca, sede, área y empresa deben coincidir con los catálogos activos. Separador: punto y coma o coma.</p>
-      {filas.length > 0 && (
+      {tipo !== "excel" && filas.length > 0 && (
         <>
           <div className={`mb-4 rounded-md border p-4 text-sm ${conError ? "border-destructive/30 bg-destructive/10" : "border-success/30 bg-success/10"}`}>
             {filas.length} filas leídas · {conError ? `${conError} con errores. Corrija el archivo y vuelva a cargarlo.` : "Sin errores. Puede procesar la carga."}

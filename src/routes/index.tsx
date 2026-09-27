@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ShieldCheck } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { ingresoEmpleado } from "@/lib/usuarios.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,6 +28,26 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [modo, setModo] = useState<"empleado" | "personal">("empleado");
+  const [cedula, setCedula] = useState("");
+  const [pin, setPin] = useState("");
+  const ingresar = useServerFn(ingresoEmpleado);
+
+  async function submitEmpleado(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const r = await ingresar({ data: { cedula, pin } });
+      if ("error" in r) { toast.error(r.error); setLoading(false); return; }
+      const { error } = await supabase.auth.setSession({ access_token: r.access_token, refresh_token: r.refresh_token });
+      if (error) throw error;
+      qc.removeQueries({ queryKey: ["me"] });
+      nav({ to: "/panel", replace: true });
+    } catch {
+      toast.error("No fue posible ingresar. Intente de nuevo.");
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -61,10 +83,33 @@ function Login() {
         <div className="text-xs text-sidebar-primary">Uso interno exclusivo</div>
       </aside>
       <main className="flex items-center justify-center p-6">
-        <form onSubmit={submit} className="w-full max-w-sm space-y-6">
+        <div className="w-full max-w-sm space-y-6">
+        <div className="grid grid-cols-2 rounded-md border border-border p-1 text-sm">
+          <button type="button" onClick={() => setModo("empleado")} className={`rounded px-3 py-1.5 ${modo === "empleado" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>Empleado</button>
+          <button type="button" onClick={() => setModo("personal")} className={`rounded px-3 py-1.5 ${modo === "personal" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>Mesa de ayuda</button>
+        </div>
+        {modo === "empleado" ? (
+        <form onSubmit={submitEmpleado} className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold">Portal del empleado</h2>
+            <p className="text-sm text-muted-foreground">Ingrese con su número de cédula y el PIN de 4 dígitos que le entregó la mesa de ayuda.</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="cedula">Número de cédula</Label>
+            <Input id="cedula" inputMode="numeric" autoComplete="username" required value={cedula} onChange={(e) => setCedula(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pin">PIN</Label>
+            <Input id="pin" type="password" inputMode="numeric" maxLength={4} pattern="[0-9]{4}" autoComplete="current-password" required value={pin} onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ""))} />
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>{loading ? "Ingresando…" : "Ingresar"}</Button>
+          <p className="text-center text-xs text-muted-foreground">¿Olvidó su PIN? Solicite uno nuevo a la mesa de ayuda.</p>
+        </form>
+        ) : (
+        <form onSubmit={submit} className="space-y-6">
           <div>
             <div className="font-display text-xl font-extrabold text-primary lg:hidden">FINESA</div>
-            <h2 className="mt-2 text-2xl font-bold">Ingresar</h2>
+            <h2 className="mt-2 text-2xl font-bold">Mesa de ayuda</h2>
             <p className="text-sm text-muted-foreground">Use su correo corporativo y contraseña.</p>
           </div>
           <div className="space-y-2">
@@ -81,6 +126,8 @@ function Login() {
           <Button type="submit" className="w-full" disabled={loading}>{loading ? "Ingresando…" : "Ingresar"}</Button>
           <p className="text-center text-xs text-muted-foreground">No hay registro público. Solicite su cuenta al Administrador.</p>
         </form>
+        )}
+        </div>
       </main>
     </div>
   );

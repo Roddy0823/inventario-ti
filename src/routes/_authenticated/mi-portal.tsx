@@ -8,14 +8,14 @@ import { useCatalogos } from "@/lib/catalogos";
 import { TIPO_ACTA, errMsg, fmtFecha } from "@/lib/constantes";
 import { firmarComoEmpleado, urlArchivo } from "@/lib/firmas.functions";
 import { descargarPdfActa } from "@/lib/descargarPdf";
-import { PageHeader, EstadoActa } from "@/components/Estado";
+import { PageHeader, EstadoActa, EstadoEquipo } from "@/components/Estado";
 import { ActaResumen } from "@/components/ActaResumen";
 import { SignaturePad } from "@/components/SignaturePad";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Download } from "lucide-react";
+import { Download, Wrench } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/mi-portal")({
   head: () => ({ meta: [{ title: "Mis equipos y actas — Finesa" }, { name: "description", content: "Portal del empleado." }] }),

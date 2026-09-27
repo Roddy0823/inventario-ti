@@ -6,7 +6,7 @@ import { useMe } from "@/lib/me";
 import type { Permiso } from "@/lib/constantes";
 import { Button } from "@/components/ui/button";
 import {
-  LayoutDashboard, Laptop, Users, FileSignature, FolderOpen, Tags, UserCog, ScrollText, FileBarChart, Upload, LogOut, Menu, X, Inbox,
+  LayoutDashboard, Laptop, Users, FileSignature, FolderOpen, Tags, UserCog, FileBarChart, Upload, LogOut, Menu, X, Inbox, Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -61,7 +61,7 @@ function Shell() {
         { to: "/reportes", label: "Reportes", icon: FileBarChart, show: can("reportes_exportar") },
         { to: "/catalogos", label: "Catálogos", icon: Tags, show: me.isAdmin },
         { to: "/usuarios", label: "Usuarios y permisos", icon: UserCog, show: me.isAdmin },
-        { to: "/auditoria", label: "Auditoría", icon: ScrollText, show: me.isAdmin },
+        { to: "/ajustes", label: "Ajustes", icon: Settings, show: true },
       ];
 
   const rol = me.isAdmin ? "Administrador" : me.isStaff ? "Auxiliar de soporte" : "Empleado";

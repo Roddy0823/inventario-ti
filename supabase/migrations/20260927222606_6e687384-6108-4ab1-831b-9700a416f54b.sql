@@ -1,0 +1,1 @@
+revoke execute on function public.equipos_after_update() from public, anon, authenticated;

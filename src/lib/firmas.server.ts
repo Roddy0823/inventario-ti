@@ -74,7 +74,7 @@ async function sha256Hex(data: Uint8Array | string) {
   return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function generarPdf(dto: ActaDTO, firmaPng: Uint8Array, meta: { fecha: string; ip: string; medio: string; ua: string }) {
+export async function generarPdf(dto: ActaDTO, firmaPng: Uint8Array, meta: { fecha: string; ip: string; medio: string; ua: string }, tecnicoPng?: Uint8Array | null) {
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Acta ${dto.tipo} #${dto.numero}`);
   pdf.setAuthor("Finesa");
@@ -129,6 +129,13 @@ export async function generarPdf(dto: ActaDTO, firmaPng: Uint8Array, meta: { fec
   y = baseY - 14; text(`Firma: ${dto.empleado.nombre}`, 40, 9, bold);
   y -= 12; text(`C.C. ${dto.empleado.identificacion}`, 40, 9);
   page.drawLine({ start: { x: 320, y: baseY }, end: { x: 555, y: baseY }, thickness: 0.8, color: navy });
+  if (tecnicoPng) {
+    try {
+      const tp = await pdf.embedPng(tecnicoPng);
+      const td = tp.scaleToFit(220, 90);
+      page.drawImage(tp, { x: 320, y: baseY + 8, width: td.width, height: td.height });
+    } catch { /* firma del técnico ilegible: se omite */ }
+  }
   y = baseY - 14; text(`Técnico: ${dto.tecnico ?? ""}`, 320, 9, bold);
 
   const hashFirma = await sha256Hex(firmaPng);
@@ -156,7 +163,13 @@ export async function ejecutarFirma(admin: Admin, opts: { actaId: string; firmaD
   const ip = clientIp();
   const ua = getRequestHeader("user-agent") ?? "";
   const dto = actaDTO(completa);
-  const pdfBytes = await generarPdf(dto, bytes, { fecha, ip, medio: opts.medio, ua });
+  let tecnicoPng: Uint8Array | null = null;
+  const tfp = (completa.acta as { tecnico_firma_path?: string | null }).tecnico_firma_path;
+  if (tfp) {
+    const { data: blob } = await admin.storage.from("actas").download(tfp);
+    if (blob) tecnicoPng = new Uint8Array(await blob.arrayBuffer());
+  }
+  const pdfBytes = await generarPdf(dto, bytes, { fecha, ip, medio: opts.medio, ua }, tecnicoPng);
 
   const base = `${opts.actaId}`;
   const firmaPath = `${base}/firma.png`;

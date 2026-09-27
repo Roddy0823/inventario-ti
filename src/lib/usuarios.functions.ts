@@ -79,6 +79,21 @@ export const cambiarEstadoUsuario = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const cambiarPasswordAuxiliar = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ userId: z.string().uuid(), password: z.string().min(8).max(72) }).parse(d))
+  .handler(async ({ data, context }) => {
+    if (!(await esAdmin(context))) return NO_ADMIN;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roles } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", data.userId);
+    if (!roles?.some((r) => r.role === "auxiliar") || roles.some((r) => r.role === "admin"))
+      return { error: "Solo se puede cambiar la contraseña de auxiliares." };
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, { password: data.password });
+    if (error) return { error: error.message };
+    await registrarAuditoria(supabaseAdmin, context.userId, "usuarios", "CAMBIAR_CONTRASEÑA", data.userId, "Contraseña del auxiliar cambiada por el Administrador");
+    return { ok: true };
+  });
+
 export const eliminarAuxiliar = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ userId: z.string().uuid() }).parse(d))

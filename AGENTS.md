@@ -15,3 +15,5 @@
 - Los administradores solo se crean por SQL en Supabase; la app nunca asigna el rol admin — requisito del cliente.
 - Firma y PDF se generan en servidor (`src/lib/firmas.server.ts`, pdf-lib) con cliente admin; los tokens de firma solo son accesibles por el servidor — aislamiento de enlaces remotos.
 - `auditoria` es inmutable (trigger bloquea UPDATE/DELETE); acciones con cliente admin registran el actor manualmente — trazabilidad completa.
+- Empleados ingresan con cédula + PIN de 4 dígitos vía `ingresoEmpleado` (servidor); la contraseña interna es un HMAC del PIN con un secreto del servidor y hay bloqueo de 15 min tras 5 fallos — impide adivinar PINs desde el navegador.
+- El historial de equipos lo escribe el trigger `equipos_after_update`; las funciones que cambian estado pasan contexto con `app.hist_evento`, `app.hist_detalle` y `app.acta_id` — una sola línea de tiempo sin duplicados.

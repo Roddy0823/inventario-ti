@@ -53,7 +53,7 @@ function PerfilEmpleado() {
   async function onRetirar() {
     if (asignados.length) return toast.error(`Paz y salvo pendiente: el empleado tiene ${asignados.length} equipo(s) asignado(s). Realice primero el acta de devolución.`);
     if (!confirm("¿Marcar al empleado como inactivo? Se conservará su historial.")) return;
-    try { await retirar({ data: { empleadoId: id } }); toast.success("Empleado retirado"); qc.invalidateQueries({ queryKey: ["empleado", id] }); qc.invalidateQueries({ queryKey: ["empleados"] }); }
+    try { const r = await retirar({ data: { empleadoId: id } }); if ("error" in r && r.error) { toast.error(r.error); return; } toast.success("Empleado retirado"); qc.invalidateQueries({ queryKey: ["empleado", id] }); qc.invalidateQueries({ queryKey: ["empleados"] }); }
     catch (x) { toast.error(errMsg(x)); }
   }
   async function reactivar() {

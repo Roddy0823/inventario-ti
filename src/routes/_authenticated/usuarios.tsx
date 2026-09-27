@@ -67,11 +67,11 @@ function FilaUsuario({ u, esYo }: { u: Fila; esYo: boolean }) {
   const eliminar = useServerFn(eliminarAuxiliar);
   const admin = u.roles.includes("admin");
   async function toggle() {
-    try { await estado({ data: { userId: u.id, activo: !u.activo } }); toast.success(u.activo ? "Cuenta suspendida" : "Cuenta reactivada"); qc.invalidateQueries({ queryKey: ["usuarios"] }); }
+    try { const r = await estado({ data: { userId: u.id, activo: !u.activo } }); if ("error" in r && r.error) { toast.error(r.error); return; } toast.success(u.activo ? "Cuenta suspendida" : "Cuenta reactivada"); qc.invalidateQueries({ queryKey: ["usuarios"] }); }
     catch (e) { toast.error(errMsg(e)); }
   }
   async function copiarLink() {
-    try { const r = await link({ data: { userId: u.id } }); await navigator.clipboard.writeText(r.url); toast.success("Enlace para definir contraseña copiado"); }
+    try { const r = await link({ data: { userId: u.id } }); if ("error" in r && r.error) { toast.error(r.error); return; } await navigator.clipboard.writeText(r.url); toast.success("Enlace para definir contraseña copiado"); }
     catch (e) { toast.error(errMsg(e)); }
   }
   async function borrar() {
@@ -122,7 +122,7 @@ function EditarPermisos({ u }: { u: Fila }) {
   const [open, setOpen] = useState(false);
   const [sel, setSel] = useState<Permiso[]>(u.permisos);
   async function guardar() {
-    try { await fn({ data: { userId: u.id, permisos: sel } }); toast.success("Permisos actualizados"); setOpen(false); qc.invalidateQueries({ queryKey: ["usuarios"] }); }
+    try { const r = await fn({ data: { userId: u.id, permisos: sel } }); if ("error" in r && r.error) { toast.error(r.error); return; } toast.success("Permisos actualizados"); setOpen(false); qc.invalidateQueries({ queryKey: ["usuarios"] }); }
     catch (e) { toast.error(errMsg(e)); }
   }
   return (
@@ -148,7 +148,8 @@ function NuevoAuxiliar() {
     e.preventDefault();
     setLoading(true);
     try {
-      await fn({ data: { ...f, permisos: sel } });
+      const r = await fn({ data: { ...f, permisos: sel } });
+      if ("error" in r && r.error) { toast.error(r.error); return; }
       toast.success("Auxiliar creado. Comparta la contraseña temporal de forma segura.");
       setOpen(false); setF({ nombre: "", email: "", password: "" });
       qc.invalidateQueries({ queryKey: ["usuarios"] });

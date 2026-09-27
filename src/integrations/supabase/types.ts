@@ -16,22 +16,31 @@ export type Database = {
     Tables: {
       acta_items: {
         Row: {
+          accesorios: string | null
           acta_id: string
           created_at: string
           equipo_id: string
+          estado_fisico: string | null
           id: string
+          nota: string | null
         }
         Insert: {
+          accesorios?: string | null
           acta_id: string
           created_at?: string
           equipo_id: string
+          estado_fisico?: string | null
           id?: string
+          nota?: string | null
         }
         Update: {
+          accesorios?: string | null
           acta_id?: string
           created_at?: string
           equipo_id?: string
+          estado_fisico?: string | null
           id?: string
+          nota?: string | null
         }
         Relationships: [
           {

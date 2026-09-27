@@ -23,9 +23,12 @@ export async function cargarActaCompleta(admin: Admin, actaId: string) {
   if (!acta) throw new Error("Acta no encontrada");
   const { data: items } = await admin
     .from("acta_items")
-    .select("equipo:equipos(id, serie, modelo, tipo:catalogo_items!equipos_tipo_id_fkey(nombre), marca:catalogo_items!equipos_marca_id_fkey(nombre))")
+    .select("estado_fisico, accesorios, nota, equipo:equipos(id, serie, modelo, tipo:catalogo_items!equipos_tipo_id_fkey(nombre), marca:catalogo_items!equipos_marca_id_fkey(nombre))")
     .eq("acta_id", actaId);
-  return { acta, equipos: (items ?? []).map((i) => i.equipo).filter(Boolean) as NonNullable<(typeof items)>[number]["equipo"][] };
+  return {
+    acta,
+    equipos: (items ?? []).filter((i) => i.equipo).map((i) => ({ ...(i.equipo as object), estado_fisico: i.estado_fisico, accesorios: i.accesorios, nota: i.nota })) as unknown as NonNullable<(typeof items)>[number]["equipo"][],
+  };
 }
 
 export type ActaCompleta = Awaited<ReturnType<typeof cargarActaCompleta>>;
@@ -53,8 +56,8 @@ export function actaDTO(c: ActaCompleta) {
       empresa: e?.empresa?.nombre ?? "",
     },
     equipos: c.equipos.map((q) => {
-      const x = q as unknown as { serie: string; modelo: string | null; tipo: { nombre: string } | null; marca: { nombre: string } | null };
-      return { serie: x.serie, modelo: x.modelo ?? "", tipo: x.tipo?.nombre ?? "", marca: x.marca?.nombre ?? "" };
+      const x = q as unknown as { serie: string; modelo: string | null; tipo: { nombre: string } | null; marca: { nombre: string } | null; estado_fisico: string | null; accesorios: string | null; nota: string | null };
+      return { serie: x.serie, modelo: x.modelo ?? "", tipo: x.tipo?.nombre ?? "", marca: x.marca?.nombre ?? "", estado_fisico: x.estado_fisico ?? "", accesorios: x.accesorios ?? "", nota: x.nota ?? "" };
     }),
   };
 }
@@ -103,7 +106,10 @@ export async function generarPdf(dto: ActaDTO, firmaPng: Uint8Array, meta: { fec
   y -= 20;
   for (const q of dto.equipos) {
     text(q.tipo, 46, 9); text(q.marca, 170, 9); text(q.modelo.slice(0, 24), 290, 9); text(q.serie, 420, 9);
-    y -= 15;
+    y -= 12;
+    const det = [`Estado: ${q.estado_fisico || "—"}`, `Accesorios: ${q.accesorios || "—"}`, q.nota ? `Nota: ${q.nota}` : ""].filter(Boolean).join("  ·  ");
+    text(det.slice(0, 110), 46, 8, font, gray);
+    y -= 14;
   }
   y -= 15;
   text("OBSERVACIONES", 40, 11, bold); y -= 16;

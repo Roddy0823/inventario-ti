@@ -34,7 +34,7 @@ function Portal() {
       const { data: emp } = await supabase.from("empleados").select("*").eq("user_id", me!.id).maybeSingle();
       if (!emp) return null;
       const [eq, ac] = await Promise.all([
-        supabase.from("equipos").select("*").eq("empleado_id", emp.id).eq("estado", "asignado"),
+        supabase.from("equipos").select("*").eq("empleado_id", emp.id).in("estado", ["asignado", "en_reparacion"]),
         supabase.from("actas").select("*, items:acta_items(equipo:equipos(*))").eq("empleado_id", emp.id).order("created_at", { ascending: false }),
       ]);
       return { emp, equipos: eq.data ?? [], actas: ac.data ?? [] };
@@ -44,6 +44,7 @@ function Portal() {
   if (!q.data) return <p className="text-muted-foreground">Su cuenta no está vinculada a un empleado. Contacte a soporte.</p>;
   const { emp, equipos, actas } = q.data;
   const pendientes = actas.filter((a) => a.estado === "pendiente");
+  const reparacion = equipos.filter((e) => e.estado === "en_reparacion");
   const historial = actas.filter((a) => a.estado !== "pendiente");
   const actaAbierta = actas.find((a) => a.id === abierta);
 
@@ -55,6 +56,15 @@ function Portal() {
   return (
     <div className="max-w-4xl">
       <PageHeader title={`Hola, ${emp.nombre.split(" ")[0]}`} desc="Sus equipos asignados y actas." />
+      {reparacion.length > 0 && (
+        <section className="mb-8 rounded-md border border-warning/40 bg-warning/10 p-4">
+          <div className="mb-2 flex items-center gap-2 font-bold"><Wrench className="h-4 w-4" />Tiene {reparacion.length} equipo(s) en reparación</div>
+          <ul className="space-y-1 text-sm">
+            {reparacion.map((e) => <li key={e.id}>{cat.nombre(e.tipo_id)} {cat.nombre(e.marca_id)} {e.modelo} · <span className="font-mono text-xs">{e.serie}</span> <span className="text-muted-foreground">· desde {fmtFecha(e.updated_at)}</span></li>)}
+          </ul>
+          <p className="mt-2 text-xs text-muted-foreground">Mesa de ayuda le informará cuando el equipo esté listo. Sigue a su cargo mientras se repara.</p>
+        </section>
+      )}
       <section className="mb-8">
         <h2 className="mb-3 text-lg font-bold">Pendientes de firma ({pendientes.length})</h2>
         {pendientes.length ? (
@@ -72,7 +82,7 @@ function Portal() {
         <section className="rounded-md border border-border bg-card">
           <div className="border-b border-border px-5 py-3 font-medium">Equipos a mi cargo ({equipos.length})</div>
           <ul className="divide-y divide-border">
-            {equipos.map((e) => <li key={e.id} className="px-5 py-3 text-sm">{cat.nombre(e.tipo_id)} {cat.nombre(e.marca_id)} {e.modelo}<div className="font-mono text-xs text-muted-foreground">{e.serie}</div></li>)}
+            {equipos.map((e) => <li key={e.id} className="flex items-center justify-between gap-2 px-5 py-3 text-sm"><span>{cat.nombre(e.tipo_id)} {cat.nombre(e.marca_id)} {e.modelo}<div className="font-mono text-xs text-muted-foreground">{e.serie}</div></span>{e.estado === "en_reparacion" && <EstadoEquipo estado={e.estado} />}</li>)}
             {!equipos.length && <li className="px-5 py-6 text-sm text-muted-foreground">No tiene equipos asignados.</li>}
           </ul>
         </section>

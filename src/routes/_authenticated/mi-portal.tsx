@@ -50,7 +50,7 @@ function Portal() {
   async function descargar(id: string, numero: number) {
     await descargarPdfActa(url, id, `acta-${numero}.pdf`);
   }
-  }
+
 
   return (
     <div className="max-w-4xl">

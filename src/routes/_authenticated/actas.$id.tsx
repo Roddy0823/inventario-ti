@@ -74,7 +74,7 @@ function DetalleActa() {
   async function descargar() {
     await descargarPdfActa(url, id, `acta-${a.numero}.pdf`);
   }
-  }
+
 
   const puedeFirmar = a.estado === "pendiente" && me?.can("firmas_capturar");
   return (

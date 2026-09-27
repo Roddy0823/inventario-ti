@@ -67,7 +67,7 @@ function Equipos() {
         <Input placeholder="Buscar por serie, activo fijo, modelo o empleado" className="w-full sm:w-80" value={f.texto} onChange={(e) => setF({ ...f, texto: e.target.value })} />
         <select className={sel} value={f.tipo} onChange={(e) => setF({ ...f, tipo: e.target.value })}><option value="">Tipo</option>{cat.byTipo("tipo_equipo", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
         <select className={sel} value={f.marca} onChange={(e) => setF({ ...f, marca: e.target.value })}><option value="">Marca</option>{cat.byTipo("marca", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
-        {tab === "activos" && <select className={sel} value={f.estado} onChange={(e) => setF({ ...f, estado: e.target.value })}><option value="">Estado</option><option value="disponible">{ESTADO_EQUIPO.disponible.label}</option><option value="asignado">{ESTADO_EQUIPO.asignado.label}</option></select>}
+        {tab === "activos" && <select className={sel} value={f.estado} onChange={(e) => setF({ ...f, estado: e.target.value })}><option value="">Estado</option><option value="disponible">Disponible</option><option value="asignado">Asignado</option></select>}
         <select className={sel} value={f.sede} onChange={(e) => setF({ ...f, sede: e.target.value })}><option value="">Sede</option>{cat.byTipo("sede", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
       </div>
       {tab !== "activos" ? <ListaEspecial tab={tab} lista={lista} puedeEditar={!!me?.can("equipos_editar")} /> : (

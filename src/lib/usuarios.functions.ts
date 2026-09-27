@@ -90,7 +90,7 @@ export const eliminarAuxiliar = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ userId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await exigirAdmin(context);
+    if (!(await esAdmin(context))) return NO_ADMIN;
     if (data.userId === context.userId) return { error: "No puede eliminar su propia cuenta." };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: roles } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", data.userId);
@@ -110,12 +110,12 @@ export const enlaceRestablecer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ userId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await exigirAdmin(context);
+    if (!(await esAdmin(context))) return NO_ADMIN;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: p } = await supabaseAdmin.from("profiles").select("email").eq("id", data.userId).maybeSingle();
-    if (!p?.email) throw new Error("Usuario no encontrado");
+    if (!p?.email) return { error: "Usuario no encontrado" };
     const { data: link, error } = await supabaseAdmin.auth.admin.generateLink({ type: "recovery", email: p.email, options: { redirectTo: `${origen()}/restablecer` } });
-    if (error) throw new Error(error.message);
+    if (error) return { error: error.message };
     await registrarAuditoria(supabaseAdmin, context.userId, "usuarios", "ENLACE_CLAVE", data.userId, "Enlace para definir contraseña generado");
     return { url: link.properties.action_link };
   });

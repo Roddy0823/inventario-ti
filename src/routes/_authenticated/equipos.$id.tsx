@@ -54,7 +54,7 @@ function FichaEquipo() {
       <PageHeader title={e.serie} desc={`${cat.nombre(e.tipo_id)} · ${cat.nombre(e.marca_id)} ${e.modelo ?? ""}`}>
         <EstadoEquipo estado={e.estado} />
         {me?.can("equipos_editar") && <EditarEquipo e={e} />}
-        {me?.can("equipos_editar") && e.estado !== "asignado" && e.estado !== "de_baja" && <CambiarEstado id={e.id} actual={e.estado} admin={!!me?.isAdmin} />}
+        {me?.can("equipos_editar") && (e.estado !== "asignado" || me?.isAdmin) && e.estado !== "de_baja" && <CambiarEstado id={e.id} actual={e.estado} admin={!!me?.isAdmin} />}
         {me?.isAdmin && <CorregirSerie id={e.id} serie={e.serie} />}
       </PageHeader>
       <div className="grid gap-6 lg:grid-cols-3">

@@ -64,6 +64,7 @@ function FilaUsuario({ u, esYo }: { u: Fila; esYo: boolean }) {
   const qc = useQueryClient();
   const estado = useServerFn(cambiarEstadoUsuario);
   const link = useServerFn(enlaceRestablecer);
+  const eliminar = useServerFn(eliminarAuxiliar);
   const admin = u.roles.includes("admin");
   async function toggle() {
     try { await estado({ data: { userId: u.id, activo: !u.activo } }); toast.success(u.activo ? "Cuenta suspendida" : "Cuenta reactivada"); qc.invalidateQueries({ queryKey: ["usuarios"] }); }
@@ -72,6 +73,15 @@ function FilaUsuario({ u, esYo }: { u: Fila; esYo: boolean }) {
   async function copiarLink() {
     try { const r = await link({ data: { userId: u.id } }); await navigator.clipboard.writeText(r.url); toast.success("Enlace para definir contraseña copiado"); }
     catch (e) { toast.error(errMsg(e)); }
+  }
+  async function borrar() {
+    if (!window.confirm(`¿Eliminar definitivamente la cuenta de ${u.nombre || u.email}? Esta acción no se puede deshacer.`)) return;
+    try {
+      const r = await eliminar({ data: { userId: u.id } });
+      if ("error" in r && r.error) { toast.error(r.error); return; }
+      toast.success("Cuenta de auxiliar eliminada");
+      qc.invalidateQueries({ queryKey: ["usuarios"] });
+    } catch (e) { toast.error(errMsg(e)); }
   }
   return (
     <tr>
@@ -85,6 +95,7 @@ function FilaUsuario({ u, esYo }: { u: Fila; esYo: boolean }) {
             <EditarPermisos u={u} />
             <Button size="sm" variant="outline" onClick={copiarLink}>Enlace de contraseña</Button>
             <Button size="sm" variant={u.activo ? "destructive" : "secondary"} onClick={toggle}>{u.activo ? "Suspender" : "Reactivar"}</Button>
+            <Button size="sm" variant="outline" className="text-destructive" onClick={borrar}>Eliminar</Button>
           </div>
         )}
       </td>

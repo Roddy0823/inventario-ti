@@ -21,9 +21,7 @@ export const Route = createFileRoute("/_authenticated/equipos/")({
 export const equiposQuery = {
   queryKey: ["equipos"],
   queryFn: async () => {
-    const { data, error } = await supabase.from("equipos").select("*, empleado:empleados(id, nombre)").order("created_at", { ascending: false });
-    if (error) throw error;
-    return data;
+    return fetchAll((a, b) => supabase.from("equipos").select("*, empleado:empleados(id, nombre)").order("created_at", { ascending: false }).order("id").range(a, b));
   },
 };
 
@@ -37,7 +35,7 @@ function Equipos() {
   const lista = useMemo(() => {
     const t = f.texto.trim().toLowerCase();
     return (q.data ?? []).filter((e) =>
-      (!t || e.serie.toLowerCase().includes(t) || (e.modelo ?? "").toLowerCase().includes(t) || ((e.empleado as { nombre: string } | null)?.nombre ?? "").toLowerCase().includes(t)) &&
+      (!t || e.serie.toLowerCase().includes(t) || (e.activo_fijo ?? "").toLowerCase().includes(t) || (e.modelo ?? "").toLowerCase().includes(t) || ((e.empleado as { nombre: string } | null)?.nombre ?? "").toLowerCase().includes(t)) &&
       (!f.tipo || e.tipo_id === f.tipo) && (!f.marca || e.marca_id === f.marca) && (!f.estado || e.estado === f.estado) && (!f.sede || e.sede_id === f.sede));
   }, [q.data, f]);
 
@@ -47,7 +45,7 @@ function Equipos() {
         {me?.can("equipos_editar") && <NuevoEquipo />}
       </PageHeader>
       <div className="mb-4 flex flex-wrap gap-2">
-        <Input placeholder="Buscar por serie, modelo o empleado" className="w-full sm:w-72" value={f.texto} onChange={(e) => setF({ ...f, texto: e.target.value })} />
+        <Input placeholder="Buscar por serie, activo fijo, modelo o empleado" className="w-full sm:w-80" value={f.texto} onChange={(e) => setF({ ...f, texto: e.target.value })} />
         <select className={sel} value={f.tipo} onChange={(e) => setF({ ...f, tipo: e.target.value })}><option value="">Tipo</option>{cat.byTipo("tipo_equipo", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
         <select className={sel} value={f.marca} onChange={(e) => setF({ ...f, marca: e.target.value })}><option value="">Marca</option>{cat.byTipo("marca", false).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
         <select className={sel} value={f.estado} onChange={(e) => setF({ ...f, estado: e.target.value })}><option value="">Estado</option>{Object.entries(ESTADO_EQUIPO).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
@@ -61,7 +59,7 @@ function Equipos() {
           <tbody className="divide-y divide-border">
             {lista.map((e) => (
               <tr key={e.id} className="hover:bg-muted/50">
-                <td className="px-4 py-2.5"><Link to="/equipos/$id" params={{ id: e.id }} className="font-mono text-xs font-medium text-primary hover:underline">{e.serie}</Link></td>
+                <td className="px-4 py-2.5"><Link to="/equipos/$id" params={{ id: e.id }} className="font-mono text-xs font-medium text-primary hover:underline">{e.serie}</Link>{e.activo_fijo && <div className="font-mono text-[11px] text-muted-foreground">{e.activo_fijo}</div>}</td>
                 <td className="px-4 py-2.5">{cat.nombre(e.tipo_id)}</td>
                 <td className="px-4 py-2.5">{cat.nombre(e.marca_id)} {e.modelo}</td>
                 <td className="px-4 py-2.5">{cat.nombre(e.sede_id)}</td>

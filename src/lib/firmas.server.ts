@@ -1,0 +1,171 @@
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { getRequestHeader } from "@tanstack/react-start/server";
+
+type Admin = (typeof import("@/integrations/supabase/client.server"))["supabaseAdmin"];
+
+export function clientIp() {
+  const cf = getRequestHeader("cf-connecting-ip");
+  const xff = getRequestHeader("x-forwarded-for");
+  return cf || (xff ? xff.split(",")[0]!.trim() : "") || getRequestHeader("x-real-ip") || "desconocida";
+}
+
+export async function registrarAuditoria(admin: Admin, userId: string | null, tabla: string, accion: string, registroId: string | null, detalle: string) {
+  await admin.from("auditoria").insert({ user_id: userId, tabla, accion, registro_id: registroId, detalle });
+}
+
+export async function cargarActaCompleta(admin: Admin, actaId: string) {
+  const { data: acta, error } = await admin
+    .from("actas")
+    .select("*, empleado:empleados(id, nombre, identificacion, email, cargo, user_id, area:catalogo_items!empleados_area_id_fkey(nombre), sede:catalogo_items!empleados_sede_id_fkey(nombre), empresa:catalogo_items!empleados_empresa_id_fkey(nombre))")
+    .eq("id", actaId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!acta) throw new Error("Acta no encontrada");
+  const { data: items } = await admin
+    .from("acta_items")
+    .select("equipo:equipos(id, serie, modelo, tipo:catalogo_items!equipos_tipo_id_fkey(nombre), marca:catalogo_items!equipos_marca_id_fkey(nombre))")
+    .eq("acta_id", actaId);
+  return { acta, equipos: (items ?? []).map((i) => i.equipo).filter(Boolean) as NonNullable<(typeof items)>[number]["equipo"][] };
+}
+
+export type ActaCompleta = Awaited<ReturnType<typeof cargarActaCompleta>>;
+
+export function actaDTO(c: ActaCompleta) {
+  const a = c.acta;
+  const e = a.empleado as unknown as {
+    nombre: string; identificacion: string; email: string | null; cargo: string | null;
+    area: { nombre: string } | null; sede: { nombre: string } | null; empresa: { nombre: string } | null;
+  } | null;
+  return {
+    id: a.id,
+    numero: a.numero,
+    tipo: a.tipo,
+    estado: a.estado,
+    created_at: a.created_at,
+    observaciones: a.observaciones,
+    tecnico: a.tecnico_nombre,
+    empleado: {
+      nombre: e?.nombre ?? "",
+      identificacion: e?.identificacion ?? "",
+      cargo: e?.cargo ?? "",
+      area: e?.area?.nombre ?? "",
+      sede: e?.sede?.nombre ?? "",
+      empresa: e?.empresa?.nombre ?? "",
+    },
+    equipos: c.equipos.map((q) => {
+      const x = q as unknown as { serie: string; modelo: string | null; tipo: { nombre: string } | null; marca: { nombre: string } | null };
+      return { serie: x.serie, modelo: x.modelo ?? "", tipo: x.tipo?.nombre ?? "", marca: x.marca?.nombre ?? "" };
+    }),
+  };
+}
+export type ActaDTO = ReturnType<typeof actaDTO>;
+
+function limpiar(s: string) {
+  // Helvetica (WinAnsi) no soporta ciertos caracteres; se reemplazan.
+  return (s ?? "").replace(/[^\x20-\x7E\u00A0-\u00FF]/g, "?");
+}
+
+async function sha256Hex(data: Uint8Array | string) {
+  const buf = typeof data === "string" ? new TextEncoder().encode(data) : data;
+  const h = await crypto.subtle.digest("SHA-256", buf);
+  return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export async function generarPdf(dto: ActaDTO, firmaPng: Uint8Array, meta: { fecha: string; ip: string; medio: string; ua: string }) {
+  const pdf = await PDFDocument.create();
+  pdf.setTitle(`Acta ${dto.tipo} #${dto.numero}`);
+  pdf.setAuthor("Finesa");
+  pdf.setProducer("Finesa Inventario");
+  const page = pdf.addPage([595, 842]);
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const navy = rgb(0.043, 0.145, 0.27);
+  const gray = rgb(0.35, 0.4, 0.48);
+  let y = 800;
+  const text = (t: string, x: number, size = 10, f = font, color = navy) => page.drawText(limpiar(t), { x, y, size, font: f, color });
+
+  page.drawRectangle({ x: 0, y: 770, width: 595, height: 72, color: navy });
+  page.drawText("FINESA", { x: 40, y: 808, size: 20, font: bold, color: rgb(0.93, 0.96, 0.93) });
+  page.drawText(limpiar(`ACTA DE ${dto.tipo === "entrega" ? "ENTREGA" : "DEVOLUCION"} DE EQUIPOS No. ${dto.numero}`), { x: 40, y: 785, size: 11, font: font, color: rgb(0.55, 0.66, 0.77) });
+  y = 740;
+  text(`Fecha de elaboración: ${new Date(dto.created_at).toLocaleString("es-CO", { timeZone: "America/Bogota" })}`, 40, 10, font, gray);
+  y -= 30;
+  text("DATOS DEL EMPLEADO", 40, 11, bold); y -= 18;
+  const campos: [string, string][] = [
+    ["Nombre", dto.empleado.nombre], ["Identificación", dto.empleado.identificacion], ["Cargo", dto.empleado.cargo],
+    ["Área", dto.empleado.area], ["Sede", dto.empleado.sede], ["Empresa", dto.empleado.empresa],
+  ];
+  for (const [k, v] of campos) { text(`${k}:`, 40, 10, bold); text(v || "—", 140, 10); y -= 15; }
+  y -= 15;
+  text("EQUIPOS", 40, 11, bold); y -= 18;
+  page.drawRectangle({ x: 40, y: y - 4, width: 515, height: 18, color: rgb(0.93, 0.95, 0.97) });
+  text("Tipo", 46, 9, bold); text("Marca", 170, 9, bold); text("Modelo", 290, 9, bold); text("Serie / Código", 420, 9, bold);
+  y -= 20;
+  for (const q of dto.equipos) {
+    text(q.tipo, 46, 9); text(q.marca, 170, 9); text(q.modelo.slice(0, 24), 290, 9); text(q.serie, 420, 9);
+    y -= 15;
+  }
+  y -= 15;
+  text("OBSERVACIONES", 40, 11, bold); y -= 16;
+  const obs = limpiar(dto.observaciones || "Sin observaciones.");
+  for (let i = 0; i < obs.length && y > 300; i += 95) { text(obs.slice(i, i + 95), 40, 9, font, gray); y -= 13; }
+  y -= 10;
+  const decl = dto.tipo === "entrega"
+    ? "El empleado declara recibir los equipos relacionados en buen estado y se compromete a su cuidado y uso exclusivo para fines laborales, así como a devolverlos al finalizar su vínculo."
+    : "El empleado declara haber devuelto los equipos relacionados. La recepción queda sujeta a verificación técnica.";
+  for (let i = 0; i < decl.length; i += 100) { text(decl.slice(i, i + 100), 40, 9, font, gray); y -= 13; }
+
+  const png = await pdf.embedPng(firmaPng);
+  const dims = png.scaleToFit(220, 90);
+  const baseY = 170;
+  page.drawImage(png, { x: 40, y: baseY + 8, width: dims.width, height: dims.height });
+  page.drawLine({ start: { x: 40, y: baseY }, end: { x: 280, y: baseY }, thickness: 0.8, color: navy });
+  y = baseY - 14; text(`Firma: ${dto.empleado.nombre}`, 40, 9, bold);
+  y -= 12; text(`C.C. ${dto.empleado.identificacion}`, 40, 9);
+  page.drawLine({ start: { x: 320, y: baseY }, end: { x: 555, y: baseY }, thickness: 0.8, color: navy });
+  y = baseY - 14; text(`Técnico: ${dto.tecnico ?? ""}`, 320, 9, bold);
+
+  const hashFirma = await sha256Hex(firmaPng);
+  const hashDatos = await sha256Hex(JSON.stringify(dto));
+  page.drawRectangle({ x: 40, y: 40, width: 515, height: 80, borderColor: rgb(0.8, 0.84, 0.9), borderWidth: 0.8 });
+  y = 106; text("REGISTRO DE FIRMA ELECTRÓNICA (Ley 527 de 1999)", 50, 8, bold);
+  y -= 12; text(`Fecha y hora: ${meta.fecha} (UTC) — Medio: ${meta.medio} — IP: ${meta.ip}`, 50, 7.5, font, gray);
+  y -= 11; text(`Dispositivo: ${meta.ua.slice(0, 110)}`, 50, 7.5, font, gray);
+  y -= 11; text(`Huella firma SHA-256: ${hashFirma}`, 50, 7, font, gray);
+  y -= 11; text(`Huella datos SHA-256: ${hashDatos}`, 50, 7, font, gray);
+
+  return pdf.save();
+}
+
+export async function ejecutarFirma(admin: Admin, opts: { actaId: string; firmaDataUrl: string; medio: string; actorId: string | null }) {
+  const completa = await cargarActaCompleta(admin, opts.actaId);
+  if (completa.acta.estado !== "pendiente") throw new Error("El acta ya no está pendiente de firma.");
+  const m = /^data:image\/png;base64,(.+)$/.exec(opts.firmaDataUrl);
+  if (!m) throw new Error("Firma inválida");
+  const bytes = Uint8Array.from(atob(m[1]!), (c) => c.charCodeAt(0));
+  if (bytes.length < 500) throw new Error("La firma está vacía");
+  if (bytes.length > 2_000_000) throw new Error("La firma es demasiado grande");
+
+  const fecha = new Date().toISOString();
+  const ip = clientIp();
+  const ua = getRequestHeader("user-agent") ?? "";
+  const dto = actaDTO(completa);
+  const pdfBytes = await generarPdf(dto, bytes, { fecha, ip, medio: opts.medio, ua });
+
+  const base = `${opts.actaId}`;
+  const firmaPath = `${base}/firma.png`;
+  const pdfPath = `${base}/acta-${dto.numero}.pdf`;
+  const up1 = await admin.storage.from("actas").upload(firmaPath, bytes, { contentType: "image/png", upsert: false });
+  if (up1.error) throw new Error("No se pudo guardar la firma: " + up1.error.message);
+  const up2 = await admin.storage.from("actas").upload(pdfPath, pdfBytes, { contentType: "application/pdf", upsert: false });
+  if (up2.error) throw new Error("No se pudo guardar el PDF: " + up2.error.message);
+
+  const { error } = await admin
+    .from("actas")
+    .update({ estado: "firmada", firmado_at: fecha, firma_ip: ip, firma_user_agent: ua.slice(0, 400), firma_medio: opts.medio, firma_path: firmaPath, pdf_path: pdfPath })
+    .eq("id", opts.actaId)
+    .eq("estado", "pendiente");
+  if (error) throw new Error(error.message);
+  await registrarAuditoria(admin, opts.actorId, "actas", "FIRMA", opts.actaId, `Acta #${dto.numero} firmada (${opts.medio}) desde IP ${ip}`);
+  return { ok: true, numero: dto.numero };
+}

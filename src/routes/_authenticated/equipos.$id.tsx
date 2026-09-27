@@ -58,7 +58,8 @@ function FichaEquipo() {
       <PageHeader title={e.serie} desc={`${cat.nombre(e.tipo_id)} · ${cat.nombre(e.marca_id)} ${e.modelo ?? ""}`}>
         <EstadoEquipo estado={e.estado} />
         {me?.can("equipos_editar") && <EditarEquipo e={e} />}
-        {me?.can("equipos_editar") && (e.estado !== "asignado" || me?.isAdmin) && e.estado !== "de_baja" && <CambiarEstado id={e.id} actual={e.estado} admin={!!me?.isAdmin} />}
+        {me?.can("equipos_editar") && e.estado === "en_reparacion" && <FinalizarReparacion id={e.id} empleado={emp?.nombre ?? null} />}
+        {me?.can("equipos_editar") && e.estado !== "de_baja" && !(e.estado === "en_reparacion" && !me?.isAdmin) && <CambiarEstado id={e.id} actual={e.estado} admin={!!me?.isAdmin} />}
         {me?.isAdmin && <CorregirSerie id={e.id} serie={e.serie} />}
       </PageHeader>
       <div className="grid gap-6 lg:grid-cols-3">
@@ -153,8 +154,8 @@ function CambiarEstado({ id, actual, admin }: { id: string; actual: string; admi
       <DialogContent>
         <DialogHeader><DialogTitle>Cambiar estado</DialogTitle></DialogHeader>
         <select className="h-9 w-full rounded-md border border-input bg-card px-3 text-sm" value={estado} onChange={(e) => setEstado(e.target.value)}>
-          {actual !== "disponible" && <option value="disponible">Disponible</option>}
-          {actual !== "en_reparacion" && <option value="en_reparacion">En reparación</option>}
+          {actual !== "disponible" && actual !== "en_reparacion" && (actual !== "asignado" || admin) && <option value="disponible">Disponible</option>}
+          {actual !== "en_reparacion" && <option value="en_reparacion">En reparación{actual === "asignado" ? " (sigue ligado al empleado)" : ""}</option>}
           {admin && <option value="de_baja">De baja (definitivo)</option>}
         </select>
         <div className="space-y-1"><Label>Motivo *</Label><Textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>

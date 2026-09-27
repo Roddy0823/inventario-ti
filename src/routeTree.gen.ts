@@ -18,6 +18,11 @@ import { Route as AuthenticatedCatalogosRouteImport } from './routes/_authentica
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as FirmarTokenRouteImport } from './routes/firmar.$token'
+import { Route as AuthenticatedActasIndexRouteImport } from './routes/_authenticated/actas.index'
+import { Route as AuthenticatedActasIdRouteImport } from './routes/_authenticated/actas.$id'
+import { Route as AuthenticatedActasNuevaRouteImport } from './routes/_authenticated/actas.nueva'
+import { Route as AuthenticatedEmpleadosIndexRouteImport } from './routes/_authenticated/empleados.index'
+import { Route as AuthenticatedEmpleadosIdRouteImport } from './routes/_authenticated/empleados.$id'
 import { Route as AuthenticatedEquiposIndexRouteImport } from './routes/_authenticated/equipos.index'
 import { Route as AuthenticatedEquiposIdRouteImport } from './routes/_authenticated/equipos.$id'
 
@@ -65,6 +70,33 @@ const FirmarTokenRoute = FirmarTokenRouteImport.update({
   path: '/firmar/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedActasIndexRoute = AuthenticatedActasIndexRouteImport.update({
+  id: '/actas/',
+  path: '/actas/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedActasIdRoute = AuthenticatedActasIdRouteImport.update({
+  id: '/actas/$id',
+  path: '/actas/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedActasNuevaRoute = AuthenticatedActasNuevaRouteImport.update({
+  id: '/actas/nueva',
+  path: '/actas/nueva',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEmpleadosIndexRoute =
+  AuthenticatedEmpleadosIndexRouteImport.update({
+    id: '/empleados/',
+    path: '/empleados/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEmpleadosIdRoute =
+  AuthenticatedEmpleadosIdRouteImport.update({
+    id: '/empleados/$id',
+    path: '/empleados/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEquiposIndexRoute =
   AuthenticatedEquiposIndexRouteImport.update({
     id: '/equipos/',
@@ -86,7 +118,12 @@ export interface FileRoutesByFullPath {
   '/panel': typeof AuthenticatedPanelRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
+  '/actas/$id': typeof AuthenticatedActasIdRoute
+  '/actas/nueva': typeof AuthenticatedActasNuevaRoute
+  '/empleados/$id': typeof AuthenticatedEmpleadosIdRoute
   '/equipos/$id': typeof AuthenticatedEquiposIdRoute
+  '/actas/': typeof AuthenticatedActasIndexRoute
+  '/empleados/': typeof AuthenticatedEmpleadosIndexRoute
   '/equipos/': typeof AuthenticatedEquiposIndexRoute
 }
 export interface FileRoutesByTo {
@@ -98,7 +135,12 @@ export interface FileRoutesByTo {
   '/panel': typeof AuthenticatedPanelRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
+  '/actas/$id': typeof AuthenticatedActasIdRoute
+  '/actas/nueva': typeof AuthenticatedActasNuevaRoute
+  '/empleados/$id': typeof AuthenticatedEmpleadosIdRoute
   '/equipos/$id': typeof AuthenticatedEquiposIdRoute
+  '/actas': typeof AuthenticatedActasIndexRoute
+  '/empleados': typeof AuthenticatedEmpleadosIndexRoute
   '/equipos': typeof AuthenticatedEquiposIndexRoute
 }
 export interface FileRoutesById {
@@ -112,7 +154,12 @@ export interface FileRoutesById {
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
+  '/_authenticated/actas/$id': typeof AuthenticatedActasIdRoute
+  '/_authenticated/actas/nueva': typeof AuthenticatedActasNuevaRoute
+  '/_authenticated/empleados/$id': typeof AuthenticatedEmpleadosIdRoute
   '/_authenticated/equipos/$id': typeof AuthenticatedEquiposIdRoute
+  '/_authenticated/actas/': typeof AuthenticatedActasIndexRoute
+  '/_authenticated/empleados/': typeof AuthenticatedEmpleadosIndexRoute
   '/_authenticated/equipos/': typeof AuthenticatedEquiposIndexRoute
 }
 export interface FileRouteTypes {
@@ -126,7 +173,12 @@ export interface FileRouteTypes {
     | '/panel'
     | '/usuarios'
     | '/firmar/$token'
+    | '/actas/$id'
+    | '/actas/nueva'
+    | '/empleados/$id'
     | '/equipos/$id'
+    | '/actas/'
+    | '/empleados/'
     | '/equipos/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -138,7 +190,12 @@ export interface FileRouteTypes {
     | '/panel'
     | '/usuarios'
     | '/firmar/$token'
+    | '/actas/$id'
+    | '/actas/nueva'
+    | '/empleados/$id'
     | '/equipos/$id'
+    | '/actas'
+    | '/empleados'
     | '/equipos'
   id:
     | '__root__'
@@ -151,7 +208,12 @@ export interface FileRouteTypes {
     | '/_authenticated/panel'
     | '/_authenticated/usuarios'
     | '/firmar/$token'
+    | '/_authenticated/actas/$id'
+    | '/_authenticated/actas/nueva'
+    | '/_authenticated/empleados/$id'
     | '/_authenticated/equipos/$id'
+    | '/_authenticated/actas/'
+    | '/_authenticated/empleados/'
     | '/_authenticated/equipos/'
   fileRoutesById: FileRoutesById
 }
@@ -228,6 +290,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FirmarTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/actas/': {
+      id: '/_authenticated/actas/'
+      path: '/actas'
+      fullPath: '/actas/'
+      preLoaderRoute: typeof AuthenticatedActasIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/actas/$id': {
+      id: '/_authenticated/actas/$id'
+      path: '/actas/$id'
+      fullPath: '/actas/$id'
+      preLoaderRoute: typeof AuthenticatedActasIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/actas/nueva': {
+      id: '/_authenticated/actas/nueva'
+      path: '/actas/nueva'
+      fullPath: '/actas/nueva'
+      preLoaderRoute: typeof AuthenticatedActasNuevaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/empleados/': {
+      id: '/_authenticated/empleados/'
+      path: '/empleados'
+      fullPath: '/empleados/'
+      preLoaderRoute: typeof AuthenticatedEmpleadosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/empleados/$id': {
+      id: '/_authenticated/empleados/$id'
+      path: '/empleados/$id'
+      fullPath: '/empleados/$id'
+      preLoaderRoute: typeof AuthenticatedEmpleadosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/equipos/': {
       id: '/_authenticated/equipos/'
       path: '/equipos'
@@ -250,7 +347,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCatalogosRoute: typeof AuthenticatedCatalogosRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
+  AuthenticatedActasIdRoute: typeof AuthenticatedActasIdRoute
+  AuthenticatedActasNuevaRoute: typeof AuthenticatedActasNuevaRoute
+  AuthenticatedEmpleadosIdRoute: typeof AuthenticatedEmpleadosIdRoute
   AuthenticatedEquiposIdRoute: typeof AuthenticatedEquiposIdRoute
+  AuthenticatedActasIndexRoute: typeof AuthenticatedActasIndexRoute
+  AuthenticatedEmpleadosIndexRoute: typeof AuthenticatedEmpleadosIndexRoute
   AuthenticatedEquiposIndexRoute: typeof AuthenticatedEquiposIndexRoute
 }
 
@@ -259,7 +361,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCatalogosRoute: AuthenticatedCatalogosRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
+  AuthenticatedActasIdRoute: AuthenticatedActasIdRoute,
+  AuthenticatedActasNuevaRoute: AuthenticatedActasNuevaRoute,
+  AuthenticatedEmpleadosIdRoute: AuthenticatedEmpleadosIdRoute,
   AuthenticatedEquiposIdRoute: AuthenticatedEquiposIdRoute,
+  AuthenticatedActasIndexRoute: AuthenticatedActasIndexRoute,
+  AuthenticatedEmpleadosIndexRoute: AuthenticatedEmpleadosIndexRoute,
   AuthenticatedEquiposIndexRoute: AuthenticatedEquiposIndexRoute,
 }
 

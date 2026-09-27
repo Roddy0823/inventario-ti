@@ -71,7 +71,8 @@ function DetalleActa() {
     } catch (e) { toast.error(errMsg(e)); } finally { setFirmando(false); }
   }
   async function descargar() {
-    try { const r = await url({ data: { actaId: id } }); window.open(r.url, "_blank"); } catch (e) { toast.error(errMsg(e)); }
+    const w = window.open("", "_blank");
+    try { const r = await url({ data: { actaId: id } }); if (w) w.location.href = r.url; else window.open(r.url, "_blank"); } catch (e) { w?.close(); toast.error(errMsg(e)); }
   }
 
   const puedeFirmar = a.estado === "pendiente" && me?.can("firmas_capturar");

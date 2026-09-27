@@ -47,7 +47,8 @@ function Portal() {
   const actaAbierta = actas.find((a) => a.id === abierta);
 
   async function descargar(id: string) {
-    try { const r = await url({ data: { actaId: id } }); window.open(r.url, "_blank"); } catch (e) { toast.error(errMsg(e)); }
+    const w = window.open("", "_blank");
+    try { const r = await url({ data: { actaId: id } }); if (w) w.location.href = r.url; else window.open(r.url, "_blank"); } catch (e) { w?.close(); toast.error(errMsg(e)); }
   }
 
   return (

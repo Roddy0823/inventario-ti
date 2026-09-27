@@ -39,7 +39,9 @@ function Repositorio() {
     },
   });
   async function descargar(id: string) {
-    try { const r = await url({ data: { actaId: id } }); window.open(r.url, "_blank"); } catch (e) { toast.error(errMsg(e)); }
+    // Abrir la ventana en el clic (gesto del usuario); si se espera la respuesta del servidor, el navegador la bloquea como ventana emergente.
+    const w = window.open("", "_blank");
+    try { const r = await url({ data: { actaId: id } }); if (w) w.location.href = r.url; else window.open(r.url, "_blank"); } catch (e) { w?.close(); toast.error(errMsg(e)); }
   }
   const s = "h-9 rounded-md border border-input bg-card px-3 text-sm";
   const puedeVer = me?.can("repositorio_ver");

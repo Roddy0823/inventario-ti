@@ -14,10 +14,18 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as RecuperarRouteImport } from './routes/recuperar'
 import { Route as RestablecerRouteImport } from './routes/restablecer'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
+import { Route as AuthenticatedCargaMasivaRouteImport } from './routes/_authenticated/carga-masiva'
 import { Route as AuthenticatedCatalogosRouteImport } from './routes/_authenticated/catalogos'
+import { Route as AuthenticatedMiPortalRouteImport } from './routes/_authenticated/mi-portal'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
+import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as FirmarTokenRouteImport } from './routes/firmar.$token'
+import { Route as AuthenticatedActasIndexRouteImport } from './routes/_authenticated/actas.index'
+import { Route as AuthenticatedActasIdRouteImport } from './routes/_authenticated/actas.$id'
+import { Route as AuthenticatedActasNuevaRouteImport } from './routes/_authenticated/actas.nueva'
+import { Route as AuthenticatedEmpleadosIndexRouteImport } from './routes/_authenticated/empleados.index'
+import { Route as AuthenticatedEmpleadosIdRouteImport } from './routes/_authenticated/empleados.$id'
 import { Route as AuthenticatedEquiposIndexRouteImport } from './routes/_authenticated/equipos.index'
 import { Route as AuthenticatedEquiposIdRouteImport } from './routes/_authenticated/equipos.$id'
 
@@ -45,14 +53,30 @@ const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
   path: '/auditoria',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCargaMasivaRoute =
+  AuthenticatedCargaMasivaRouteImport.update({
+    id: '/carga-masiva',
+    path: '/carga-masiva',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCatalogosRoute = AuthenticatedCatalogosRouteImport.update({
   id: '/catalogos',
   path: '/catalogos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMiPortalRoute = AuthenticatedMiPortalRouteImport.update({
+  id: '/mi-portal',
+  path: '/mi-portal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   id: '/panel',
   path: '/panel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReportesRoute = AuthenticatedReportesRouteImport.update({
+  id: '/reportes',
+  path: '/reportes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
@@ -65,6 +89,33 @@ const FirmarTokenRoute = FirmarTokenRouteImport.update({
   path: '/firmar/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedActasIndexRoute = AuthenticatedActasIndexRouteImport.update({
+  id: '/actas/',
+  path: '/actas/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedActasIdRoute = AuthenticatedActasIdRouteImport.update({
+  id: '/actas/$id',
+  path: '/actas/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedActasNuevaRoute = AuthenticatedActasNuevaRouteImport.update({
+  id: '/actas/nueva',
+  path: '/actas/nueva',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEmpleadosIndexRoute =
+  AuthenticatedEmpleadosIndexRouteImport.update({
+    id: '/empleados/',
+    path: '/empleados/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEmpleadosIdRoute =
+  AuthenticatedEmpleadosIdRouteImport.update({
+    id: '/empleados/$id',
+    path: '/empleados/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEquiposIndexRoute =
   AuthenticatedEquiposIndexRouteImport.update({
     id: '/equipos/',
@@ -82,11 +133,19 @@ export interface FileRoutesByFullPath {
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/carga-masiva': typeof AuthenticatedCargaMasivaRoute
   '/catalogos': typeof AuthenticatedCatalogosRoute
+  '/mi-portal': typeof AuthenticatedMiPortalRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/reportes': typeof AuthenticatedReportesRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
+  '/actas/$id': typeof AuthenticatedActasIdRoute
+  '/actas/nueva': typeof AuthenticatedActasNuevaRoute
+  '/empleados/$id': typeof AuthenticatedEmpleadosIdRoute
   '/equipos/$id': typeof AuthenticatedEquiposIdRoute
+  '/actas/': typeof AuthenticatedActasIndexRoute
+  '/empleados/': typeof AuthenticatedEmpleadosIndexRoute
   '/equipos/': typeof AuthenticatedEquiposIndexRoute
 }
 export interface FileRoutesByTo {
@@ -94,11 +153,19 @@ export interface FileRoutesByTo {
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/carga-masiva': typeof AuthenticatedCargaMasivaRoute
   '/catalogos': typeof AuthenticatedCatalogosRoute
+  '/mi-portal': typeof AuthenticatedMiPortalRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/reportes': typeof AuthenticatedReportesRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
+  '/actas/$id': typeof AuthenticatedActasIdRoute
+  '/actas/nueva': typeof AuthenticatedActasNuevaRoute
+  '/empleados/$id': typeof AuthenticatedEmpleadosIdRoute
   '/equipos/$id': typeof AuthenticatedEquiposIdRoute
+  '/actas': typeof AuthenticatedActasIndexRoute
+  '/empleados': typeof AuthenticatedEmpleadosIndexRoute
   '/equipos': typeof AuthenticatedEquiposIndexRoute
 }
 export interface FileRoutesById {
@@ -108,11 +175,19 @@ export interface FileRoutesById {
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/_authenticated/carga-masiva': typeof AuthenticatedCargaMasivaRoute
   '/_authenticated/catalogos': typeof AuthenticatedCatalogosRoute
+  '/_authenticated/mi-portal': typeof AuthenticatedMiPortalRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
+  '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
+  '/_authenticated/actas/$id': typeof AuthenticatedActasIdRoute
+  '/_authenticated/actas/nueva': typeof AuthenticatedActasNuevaRoute
+  '/_authenticated/empleados/$id': typeof AuthenticatedEmpleadosIdRoute
   '/_authenticated/equipos/$id': typeof AuthenticatedEquiposIdRoute
+  '/_authenticated/actas/': typeof AuthenticatedActasIndexRoute
+  '/_authenticated/empleados/': typeof AuthenticatedEmpleadosIndexRoute
   '/_authenticated/equipos/': typeof AuthenticatedEquiposIndexRoute
 }
 export interface FileRouteTypes {
@@ -122,11 +197,19 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/restablecer'
     | '/auditoria'
+    | '/carga-masiva'
     | '/catalogos'
+    | '/mi-portal'
     | '/panel'
+    | '/reportes'
     | '/usuarios'
     | '/firmar/$token'
+    | '/actas/$id'
+    | '/actas/nueva'
+    | '/empleados/$id'
     | '/equipos/$id'
+    | '/actas/'
+    | '/empleados/'
     | '/equipos/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -134,11 +217,19 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/restablecer'
     | '/auditoria'
+    | '/carga-masiva'
     | '/catalogos'
+    | '/mi-portal'
     | '/panel'
+    | '/reportes'
     | '/usuarios'
     | '/firmar/$token'
+    | '/actas/$id'
+    | '/actas/nueva'
+    | '/empleados/$id'
     | '/equipos/$id'
+    | '/actas'
+    | '/empleados'
     | '/equipos'
   id:
     | '__root__'
@@ -147,11 +238,19 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/restablecer'
     | '/_authenticated/auditoria'
+    | '/_authenticated/carga-masiva'
     | '/_authenticated/catalogos'
+    | '/_authenticated/mi-portal'
     | '/_authenticated/panel'
+    | '/_authenticated/reportes'
     | '/_authenticated/usuarios'
     | '/firmar/$token'
+    | '/_authenticated/actas/$id'
+    | '/_authenticated/actas/nueva'
+    | '/_authenticated/empleados/$id'
     | '/_authenticated/equipos/$id'
+    | '/_authenticated/actas/'
+    | '/_authenticated/empleados/'
     | '/_authenticated/equipos/'
   fileRoutesById: FileRoutesById
 }
@@ -200,6 +299,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAuditoriaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/carga-masiva': {
+      id: '/_authenticated/carga-masiva'
+      path: '/carga-masiva'
+      fullPath: '/carga-masiva'
+      preLoaderRoute: typeof AuthenticatedCargaMasivaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/catalogos': {
       id: '/_authenticated/catalogos'
       path: '/catalogos'
@@ -207,11 +313,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCatalogosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mi-portal': {
+      id: '/_authenticated/mi-portal'
+      path: '/mi-portal'
+      fullPath: '/mi-portal'
+      preLoaderRoute: typeof AuthenticatedMiPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/panel': {
       id: '/_authenticated/panel'
       path: '/panel'
       fullPath: '/panel'
       preLoaderRoute: typeof AuthenticatedPanelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reportes': {
+      id: '/_authenticated/reportes'
+      path: '/reportes'
+      fullPath: '/reportes'
+      preLoaderRoute: typeof AuthenticatedReportesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/usuarios': {
@@ -227,6 +347,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/firmar/$token'
       preLoaderRoute: typeof FirmarTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/actas/': {
+      id: '/_authenticated/actas/'
+      path: '/actas'
+      fullPath: '/actas/'
+      preLoaderRoute: typeof AuthenticatedActasIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/actas/$id': {
+      id: '/_authenticated/actas/$id'
+      path: '/actas/$id'
+      fullPath: '/actas/$id'
+      preLoaderRoute: typeof AuthenticatedActasIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/actas/nueva': {
+      id: '/_authenticated/actas/nueva'
+      path: '/actas/nueva'
+      fullPath: '/actas/nueva'
+      preLoaderRoute: typeof AuthenticatedActasNuevaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/empleados/': {
+      id: '/_authenticated/empleados/'
+      path: '/empleados'
+      fullPath: '/empleados/'
+      preLoaderRoute: typeof AuthenticatedEmpleadosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/empleados/$id': {
+      id: '/_authenticated/empleados/$id'
+      path: '/empleados/$id'
+      fullPath: '/empleados/$id'
+      preLoaderRoute: typeof AuthenticatedEmpleadosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/equipos/': {
       id: '/_authenticated/equipos/'
@@ -247,19 +402,35 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
+  AuthenticatedCargaMasivaRoute: typeof AuthenticatedCargaMasivaRoute
   AuthenticatedCatalogosRoute: typeof AuthenticatedCatalogosRoute
+  AuthenticatedMiPortalRoute: typeof AuthenticatedMiPortalRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
+  AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
+  AuthenticatedActasIdRoute: typeof AuthenticatedActasIdRoute
+  AuthenticatedActasNuevaRoute: typeof AuthenticatedActasNuevaRoute
+  AuthenticatedEmpleadosIdRoute: typeof AuthenticatedEmpleadosIdRoute
   AuthenticatedEquiposIdRoute: typeof AuthenticatedEquiposIdRoute
+  AuthenticatedActasIndexRoute: typeof AuthenticatedActasIndexRoute
+  AuthenticatedEmpleadosIndexRoute: typeof AuthenticatedEmpleadosIndexRoute
   AuthenticatedEquiposIndexRoute: typeof AuthenticatedEquiposIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
+  AuthenticatedCargaMasivaRoute: AuthenticatedCargaMasivaRoute,
   AuthenticatedCatalogosRoute: AuthenticatedCatalogosRoute,
+  AuthenticatedMiPortalRoute: AuthenticatedMiPortalRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
+  AuthenticatedReportesRoute: AuthenticatedReportesRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
+  AuthenticatedActasIdRoute: AuthenticatedActasIdRoute,
+  AuthenticatedActasNuevaRoute: AuthenticatedActasNuevaRoute,
+  AuthenticatedEmpleadosIdRoute: AuthenticatedEmpleadosIdRoute,
   AuthenticatedEquiposIdRoute: AuthenticatedEquiposIdRoute,
+  AuthenticatedActasIndexRoute: AuthenticatedActasIndexRoute,
+  AuthenticatedEmpleadosIndexRoute: AuthenticatedEmpleadosIndexRoute,
   AuthenticatedEquiposIndexRoute: AuthenticatedEquiposIndexRoute,
 }
 

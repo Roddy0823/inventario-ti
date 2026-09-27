@@ -1,0 +1,1 @@
+ALTER TABLE public.acta_items ADD COLUMN IF NOT EXISTS estado_fisico text, ADD COLUMN IF NOT EXISTS accesorios text, ADD COLUMN IF NOT EXISTS nota text;

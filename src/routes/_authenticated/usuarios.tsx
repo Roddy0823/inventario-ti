@@ -5,7 +5,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
 import { PERMISOS, errMsg, type Permiso } from "@/lib/constantes";
-import { actualizarPermisos, cambiarEstadoUsuario, crearAuxiliar, enlaceRestablecer } from "@/lib/usuarios.functions";
+import { actualizarPermisos, cambiarEstadoUsuario, crearAuxiliar, eliminarAuxiliar, enlaceRestablecer } from "@/lib/usuarios.functions";
 import { PageHeader } from "@/components/Estado";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,14 +64,24 @@ function FilaUsuario({ u, esYo }: { u: Fila; esYo: boolean }) {
   const qc = useQueryClient();
   const estado = useServerFn(cambiarEstadoUsuario);
   const link = useServerFn(enlaceRestablecer);
+  const eliminar = useServerFn(eliminarAuxiliar);
   const admin = u.roles.includes("admin");
   async function toggle() {
-    try { await estado({ data: { userId: u.id, activo: !u.activo } }); toast.success(u.activo ? "Cuenta suspendida" : "Cuenta reactivada"); qc.invalidateQueries({ queryKey: ["usuarios"] }); }
+    try { const r = await estado({ data: { userId: u.id, activo: !u.activo } }); if ("error" in r && r.error) { toast.error(r.error); return; } toast.success(u.activo ? "Cuenta suspendida" : "Cuenta reactivada"); qc.invalidateQueries({ queryKey: ["usuarios"] }); }
     catch (e) { toast.error(errMsg(e)); }
   }
   async function copiarLink() {
-    try { const r = await link({ data: { userId: u.id } }); await navigator.clipboard.writeText(r.url); toast.success("Enlace para definir contraseña copiado"); }
+    try { const r = await link({ data: { userId: u.id } }); if ("error" in r) { toast.error(r.error); return; } await navigator.clipboard.writeText(r.url); toast.success("Enlace para definir contraseña copiado"); }
     catch (e) { toast.error(errMsg(e)); }
+  }
+  async function borrar() {
+    if (!window.confirm(`¿Eliminar definitivamente la cuenta de ${u.nombre || u.email}? Esta acción no se puede deshacer.`)) return;
+    try {
+      const r = await eliminar({ data: { userId: u.id } });
+      if ("error" in r && r.error) { toast.error(r.error); return; }
+      toast.success("Cuenta de auxiliar eliminada");
+      qc.invalidateQueries({ queryKey: ["usuarios"] });
+    } catch (e) { toast.error(errMsg(e)); }
   }
   return (
     <tr>
@@ -85,6 +95,7 @@ function FilaUsuario({ u, esYo }: { u: Fila; esYo: boolean }) {
             <EditarPermisos u={u} />
             <Button size="sm" variant="outline" onClick={copiarLink}>Enlace de contraseña</Button>
             <Button size="sm" variant={u.activo ? "destructive" : "secondary"} onClick={toggle}>{u.activo ? "Suspender" : "Reactivar"}</Button>
+            <Button size="sm" variant="outline" className="text-destructive" onClick={borrar}>Eliminar</Button>
           </div>
         )}
       </td>
@@ -111,7 +122,7 @@ function EditarPermisos({ u }: { u: Fila }) {
   const [open, setOpen] = useState(false);
   const [sel, setSel] = useState<Permiso[]>(u.permisos);
   async function guardar() {
-    try { await fn({ data: { userId: u.id, permisos: sel } }); toast.success("Permisos actualizados"); setOpen(false); qc.invalidateQueries({ queryKey: ["usuarios"] }); }
+    try { const r = await fn({ data: { userId: u.id, permisos: sel } }); if ("error" in r && r.error) { toast.error(r.error); return; } toast.success("Permisos actualizados"); setOpen(false); qc.invalidateQueries({ queryKey: ["usuarios"] }); }
     catch (e) { toast.error(errMsg(e)); }
   }
   return (
@@ -137,7 +148,8 @@ function NuevoAuxiliar() {
     e.preventDefault();
     setLoading(true);
     try {
-      await fn({ data: { ...f, permisos: sel } });
+      const r = await fn({ data: { ...f, permisos: sel } });
+      if ("error" in r && r.error) { toast.error(r.error); return; }
       toast.success("Auxiliar creado. Comparta la contraseña temporal de forma segura.");
       setOpen(false); setF({ nombre: "", email: "", password: "" });
       qc.invalidateQueries({ queryKey: ["usuarios"] });

@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/equipos/")({
-  validateSearch: (s: Record<string, unknown>): { tab?: "activos" | "en_reparacion" | "de_baja"; estado?: "disponible" | "asignado" } => ({
+  validateSearch: (s: Record<string, unknown>): { tab?: "activos" | "en_reparacion" | "de_baja" | undefined; estado?: "disponible" | "asignado" | undefined } => ({
     tab: s.tab === "en_reparacion" || s.tab === "de_baja" || s.tab === "activos" ? s.tab : undefined,
     estado: s.estado === "disponible" || s.estado === "asignado" ? s.estado : undefined,
   }),

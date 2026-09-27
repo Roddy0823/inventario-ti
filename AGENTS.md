@@ -17,3 +17,4 @@
 - `auditoria` es inmutable (trigger bloquea UPDATE/DELETE); acciones con cliente admin registran el actor manualmente — trazabilidad completa.
 - Empleados ingresan con cédula + PIN de 4 dígitos vía `ingresoEmpleado` (servidor); la contraseña interna es un HMAC del PIN con un secreto del servidor y hay bloqueo de 15 min tras 5 fallos — impide adivinar PINs desde el navegador.
 - El historial de equipos lo escribe el trigger `equipos_after_update`; las funciones que cambian estado pasan contexto con `app.hist_evento`, `app.hist_detalle` y `app.acta_id` — una sola línea de tiempo sin duplicados.
+- La firma del técnico se guarda en `profiles.firma_path` y se copia al acta al crearla (`actas.tecnico_firma_path`) — cambios posteriores de firma no alteran actas emitidas.

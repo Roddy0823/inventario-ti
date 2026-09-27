@@ -67,7 +67,7 @@ function Repositorio() {
                 <td className="px-4 py-2.5 text-xs">{fmtFecha(a.created_at)}</td>
                 <td className="px-4 py-2.5 text-xs">{fmtFecha(a.firmado_at, true)}</td>
                 <td className="px-4 py-2.5"><EstadoActa estado={a.estado} /></td>
-                <td className="px-4 py-2.5 text-right">{a.pdf_path && puedeVer && <Button size="icon" variant="ghost" onClick={() => descargar(a.id)} aria-label="Descargar PDF"><Download className="h-4 w-4" /></Button>}</td>
+                <td className="px-4 py-2.5 text-right">{a.pdf_path && puedeVer && <Button size="icon" variant="ghost" onClick={() => descargar(a.id, a.numero)} aria-label="Descargar PDF"><Download className="h-4 w-4" /></Button>}</td>
               </tr>
             ))}
             {!q.isLoading && !q.data?.length && <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No hay actas.</td></tr>}

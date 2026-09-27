@@ -81,7 +81,7 @@ function Portal() {
             {historial.map((a) => (
               <li key={a.id} className="flex items-center justify-between gap-2 px-5 py-3 text-sm">
                 <span>{TIPO_ACTA[a.tipo]} #{a.numero}<div className="text-xs text-muted-foreground">{fmtFecha(a.firmado_at ?? a.created_at)}</div></span>
-                <span className="flex items-center gap-2"><EstadoActa estado={a.estado} />{a.pdf_path && <Button size="icon" variant="ghost" onClick={() => descargar(a.id)} aria-label="Descargar"><Download className="h-4 w-4" /></Button>}</span>
+                <span className="flex items-center gap-2"><EstadoActa estado={a.estado} />{a.pdf_path && <Button size="icon" variant="ghost" onClick={() => descargar(a.id, a.numero)} aria-label="Descargar"><Download className="h-4 w-4" /></Button>}</span>
               </li>
             ))}
             {!historial.length && <li className="px-5 py-6 text-sm text-muted-foreground">Sin actas.</li>}

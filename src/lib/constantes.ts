@@ -44,7 +44,7 @@ export function fmtFecha(d?: string | null, hora = false) {
 
 export function descargarCSV(nombre: string, filas: Record<string, unknown>[]) {
   if (!filas.length) return;
-  const cols = Object.keys(filas[0]);
+  const cols = Object.keys(filas[0]!);
   const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const csv = "\uFEFF" + [cols.join(";"), ...filas.map((f) => cols.map((c) => esc(f[c])).join(";"))].join("\n");
   const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));

@@ -7,6 +7,7 @@ import { useMe } from "@/lib/me";
 import { useCatalogos } from "@/lib/catalogos";
 import { TIPO_ACTA, errMsg, fmtFecha } from "@/lib/constantes";
 import { firmarComoEmpleado, urlArchivo } from "@/lib/firmas.functions";
+import { descargarPdfActa } from "@/lib/descargarPdf";
 import { PageHeader, EstadoActa } from "@/components/Estado";
 import { ActaResumen } from "@/components/ActaResumen";
 import { SignaturePad } from "@/components/SignaturePad";

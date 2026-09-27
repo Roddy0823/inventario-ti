@@ -85,6 +85,26 @@ export const cambiarEstadoUsuario = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const eliminarAuxiliar = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ userId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await exigirAdmin(context);
+    if (data.userId === context.userId) return { error: "No puede eliminar su propia cuenta." };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roles } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", data.userId);
+    if (!roles?.some((r) => r.role === "auxiliar") || roles.some((r) => r.role === "admin"))
+      return { error: "Solo se pueden eliminar cuentas de auxiliares." };
+    const { data: p } = await supabaseAdmin.from("profiles").select("email, nombre").eq("id", data.userId).maybeSingle();
+    await registrarAuditoria(supabaseAdmin, context.userId, "usuarios", "ELIMINAR_AUXILIAR", data.userId, `Cuenta de auxiliar eliminada: ${p?.email ?? data.userId} (${p?.nombre ?? "sin nombre"})`);
+    await supabaseAdmin.from("user_permisos").delete().eq("user_id", data.userId);
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
+    await supabaseAdmin.from("profiles").delete().eq("id", data.userId);
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (error) return { error: error.message };
+    return { ok: true };
+  });
+
 export const enlaceRestablecer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ userId: z.string().uuid() }).parse(d))

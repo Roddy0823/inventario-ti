@@ -5,7 +5,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
 import { PERMISOS, errMsg, type Permiso } from "@/lib/constantes";
-import { actualizarPermisos, cambiarEstadoUsuario, crearAuxiliar, enlaceRestablecer } from "@/lib/usuarios.functions";
+import { actualizarPermisos, cambiarEstadoUsuario, crearAuxiliar, eliminarAuxiliar, enlaceRestablecer } from "@/lib/usuarios.functions";
 import { PageHeader } from "@/components/Estado";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

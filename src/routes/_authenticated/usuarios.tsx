@@ -71,7 +71,7 @@ function FilaUsuario({ u, esYo }: { u: Fila; esYo: boolean }) {
     catch (e) { toast.error(errMsg(e)); }
   }
   async function copiarLink() {
-    try { const r = await link({ data: { userId: u.id } }); if ("error" in r && r.error) { toast.error(r.error); return; } await navigator.clipboard.writeText(r.url); toast.success("Enlace para definir contraseña copiado"); }
+    try { const r = await link({ data: { userId: u.id } }); if ("error" in r) { toast.error(r.error); return; } await navigator.clipboard.writeText(r.url); toast.success("Enlace para definir contraseña copiado"); }
     catch (e) { toast.error(errMsg(e)); }
   }
   async function borrar() {

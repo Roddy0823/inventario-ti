@@ -14,8 +14,11 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as RecuperarRouteImport } from './routes/recuperar'
 import { Route as RestablecerRouteImport } from './routes/restablecer'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
+import { Route as AuthenticatedCargaMasivaRouteImport } from './routes/_authenticated/carga-masiva'
 import { Route as AuthenticatedCatalogosRouteImport } from './routes/_authenticated/catalogos'
+import { Route as AuthenticatedMiPortalRouteImport } from './routes/_authenticated/mi-portal'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
+import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as FirmarTokenRouteImport } from './routes/firmar.$token'
 import { Route as AuthenticatedActasIndexRouteImport } from './routes/_authenticated/actas.index'
@@ -50,14 +53,30 @@ const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
   path: '/auditoria',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCargaMasivaRoute =
+  AuthenticatedCargaMasivaRouteImport.update({
+    id: '/carga-masiva',
+    path: '/carga-masiva',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCatalogosRoute = AuthenticatedCatalogosRouteImport.update({
   id: '/catalogos',
   path: '/catalogos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMiPortalRoute = AuthenticatedMiPortalRouteImport.update({
+  id: '/mi-portal',
+  path: '/mi-portal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   id: '/panel',
   path: '/panel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReportesRoute = AuthenticatedReportesRouteImport.update({
+  id: '/reportes',
+  path: '/reportes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
@@ -114,8 +133,11 @@ export interface FileRoutesByFullPath {
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/carga-masiva': typeof AuthenticatedCargaMasivaRoute
   '/catalogos': typeof AuthenticatedCatalogosRoute
+  '/mi-portal': typeof AuthenticatedMiPortalRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/reportes': typeof AuthenticatedReportesRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
   '/actas/$id': typeof AuthenticatedActasIdRoute
@@ -131,8 +153,11 @@ export interface FileRoutesByTo {
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/carga-masiva': typeof AuthenticatedCargaMasivaRoute
   '/catalogos': typeof AuthenticatedCatalogosRoute
+  '/mi-portal': typeof AuthenticatedMiPortalRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/reportes': typeof AuthenticatedReportesRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
   '/actas/$id': typeof AuthenticatedActasIdRoute
@@ -150,8 +175,11 @@ export interface FileRoutesById {
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/_authenticated/carga-masiva': typeof AuthenticatedCargaMasivaRoute
   '/_authenticated/catalogos': typeof AuthenticatedCatalogosRoute
+  '/_authenticated/mi-portal': typeof AuthenticatedMiPortalRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
+  '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
   '/_authenticated/actas/$id': typeof AuthenticatedActasIdRoute
@@ -169,8 +197,11 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/restablecer'
     | '/auditoria'
+    | '/carga-masiva'
     | '/catalogos'
+    | '/mi-portal'
     | '/panel'
+    | '/reportes'
     | '/usuarios'
     | '/firmar/$token'
     | '/actas/$id'
@@ -186,8 +217,11 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/restablecer'
     | '/auditoria'
+    | '/carga-masiva'
     | '/catalogos'
+    | '/mi-portal'
     | '/panel'
+    | '/reportes'
     | '/usuarios'
     | '/firmar/$token'
     | '/actas/$id'
@@ -204,8 +238,11 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/restablecer'
     | '/_authenticated/auditoria'
+    | '/_authenticated/carga-masiva'
     | '/_authenticated/catalogos'
+    | '/_authenticated/mi-portal'
     | '/_authenticated/panel'
+    | '/_authenticated/reportes'
     | '/_authenticated/usuarios'
     | '/firmar/$token'
     | '/_authenticated/actas/$id'
@@ -262,6 +299,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAuditoriaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/carga-masiva': {
+      id: '/_authenticated/carga-masiva'
+      path: '/carga-masiva'
+      fullPath: '/carga-masiva'
+      preLoaderRoute: typeof AuthenticatedCargaMasivaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/catalogos': {
       id: '/_authenticated/catalogos'
       path: '/catalogos'
@@ -269,11 +313,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCatalogosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mi-portal': {
+      id: '/_authenticated/mi-portal'
+      path: '/mi-portal'
+      fullPath: '/mi-portal'
+      preLoaderRoute: typeof AuthenticatedMiPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/panel': {
       id: '/_authenticated/panel'
       path: '/panel'
       fullPath: '/panel'
       preLoaderRoute: typeof AuthenticatedPanelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reportes': {
+      id: '/_authenticated/reportes'
+      path: '/reportes'
+      fullPath: '/reportes'
+      preLoaderRoute: typeof AuthenticatedReportesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/usuarios': {
@@ -344,8 +402,11 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
+  AuthenticatedCargaMasivaRoute: typeof AuthenticatedCargaMasivaRoute
   AuthenticatedCatalogosRoute: typeof AuthenticatedCatalogosRoute
+  AuthenticatedMiPortalRoute: typeof AuthenticatedMiPortalRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
+  AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
   AuthenticatedActasIdRoute: typeof AuthenticatedActasIdRoute
   AuthenticatedActasNuevaRoute: typeof AuthenticatedActasNuevaRoute
@@ -358,8 +419,11 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
+  AuthenticatedCargaMasivaRoute: AuthenticatedCargaMasivaRoute,
   AuthenticatedCatalogosRoute: AuthenticatedCatalogosRoute,
+  AuthenticatedMiPortalRoute: AuthenticatedMiPortalRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
+  AuthenticatedReportesRoute: AuthenticatedReportesRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
   AuthenticatedActasIdRoute: AuthenticatedActasIdRoute,
   AuthenticatedActasNuevaRoute: AuthenticatedActasNuevaRoute,

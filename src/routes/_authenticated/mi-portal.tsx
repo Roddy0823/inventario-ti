@@ -46,9 +46,9 @@ function Portal() {
   const historial = actas.filter((a) => a.estado !== "pendiente");
   const actaAbierta = actas.find((a) => a.id === abierta);
 
-  async function descargar(id: string) {
-    const w = window.open("", "_blank");
-    try { const r = await url({ data: { actaId: id } }); if (w) w.location.href = r.url; else window.open(r.url, "_blank"); } catch (e) { w?.close(); toast.error(errMsg(e)); }
+  async function descargar(id: string, numero: number) {
+    await descargarPdfActa(url, id, `acta-${numero}.pdf`);
+  }
   }
 
   return (

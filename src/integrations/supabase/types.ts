@@ -199,6 +199,8 @@ export type Database = {
           id: string
           identificacion: string
           nombre: string
+          pin_bloqueo_hasta: string | null
+          pin_intentos: number
           sede_id: string | null
           updated_at: string
           user_id: string | null
@@ -214,6 +216,8 @@ export type Database = {
           id?: string
           identificacion: string
           nombre: string
+          pin_bloqueo_hasta?: string | null
+          pin_intentos?: number
           sede_id?: string | null
           updated_at?: string
           user_id?: string | null
@@ -229,6 +233,8 @@ export type Database = {
           id?: string
           identificacion?: string
           nombre?: string
+          pin_bloqueo_hasta?: string | null
+          pin_intentos?: number
           sede_id?: string | null
           updated_at?: string
           user_id?: string | null

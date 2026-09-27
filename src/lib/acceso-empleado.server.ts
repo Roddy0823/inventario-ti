@@ -16,6 +16,6 @@ export function passwordEmpleado(cedula: string, pin: string) {
 }
 
 export function generarPin() {
-  const n = crypto.getRandomValues(new Uint32Array(1))[0] % 10000;
+  const n = (crypto.getRandomValues(new Uint32Array(1))[0] ?? 0) % 10000;
   return n.toString().padStart(4, "0");
 }

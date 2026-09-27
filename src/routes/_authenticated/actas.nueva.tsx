@@ -1,3 +1,4 @@
+import { fetchAll } from "@/lib/fetchAll";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";

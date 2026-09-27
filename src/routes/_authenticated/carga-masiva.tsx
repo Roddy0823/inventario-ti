@@ -113,7 +113,7 @@ function CargaMasiva() {
   }
 
   function plantilla() {
-    const url = URL.createObjectURL(new Blob(["\uFEFF" + PLANTILLAS[tipo]], { type: "text/csv;charset=utf-8" }));
+    const url = URL.createObjectURL(new Blob(["\uFEFF" + PLANTILLAS[tipo as "equipos" | "empleados"]], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a"); a.href = url; a.download = `plantilla_${tipo}.csv`; a.click();
   }
 

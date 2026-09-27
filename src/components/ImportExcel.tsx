@@ -34,7 +34,7 @@ export function ImportExcel({ isAdmin }: { isAdmin: boolean }) {
 
   async function leer(file: File) {
     const wb = XLSX.read(await file.arrayBuffer());
-    const hoja = (k: string) => { const n = wb.SheetNames.find((s) => s.toLowerCase().includes(k)); return n ? XLSX.utils.sheet_to_json<Row>(wb.Sheets[n], { raw: false }) : []; };
+    const hoja = (k: string) => { const n = wb.SheetNames.find((s) => s.toLowerCase().includes(k)); return n ? XLSX.utils.sheet_to_json<Row>(wb.Sheets[n]!, { raw: false }) : []; };
     const emp = hoja("emplead"), eq = hoja("equipo"), asig = hoja("asign");
     if (!emp.length && !eq.length) return toast.error("El archivo debe tener hojas 'Empleados', 'Inventario_Equipos' y/o 'Asignaciones'.");
     setReporte([]);

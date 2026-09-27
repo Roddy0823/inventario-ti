@@ -40,12 +40,13 @@ function PerfilEmpleado() {
   const asignados = q.data!.equipos.filter((x) => x.estado === "asignado");
 
   async function onHabilitar() {
-    if (!e?.email) return toast.error("El empleado no tiene correo registrado. Use «Editar» para agregar su correo y luego habilite el acceso.");
+    if (e?.user_id && !confirm("Se generará un PIN nuevo y el anterior dejará de funcionar. ¿Continuar?")) return;
     try {
       const r = await habilitar({ data: { empleadoId: id } });
       if ("error" in r) return toast.error(r.error);
-      await navigator.clipboard.writeText(r.url);
-      toast.success("Enlace copiado. Envíelo al empleado para que defina su contraseña.");
+      const texto = `Portal Finesa — Cédula: ${r.cedula} · PIN: ${r.pin}`;
+      await navigator.clipboard.writeText(texto).catch(() => {});
+      toast.success(`PIN de acceso: ${r.pin}`, { description: "Copiado al portapapeles. Entréguelo al empleado: ingresa con su cédula y este PIN.", duration: 30000 });
       qc.invalidateQueries({ queryKey: ["empleado", id] });
     } catch (x) { toast.error(errMsg(x)); }
   }
@@ -68,7 +69,7 @@ function PerfilEmpleado() {
         {me?.can("empleados_editar") && (
           <>
             <FormEmpleado inicial={{ id: e.id, nombre: e.nombre, identificacion: e.identificacion, email: e.email ?? "", cargo: e.cargo ?? "", area_id: e.area_id ?? "", sede_id: e.sede_id ?? "", empresa_id: e.empresa_id ?? "" }} />
-            {e.activo && <Button variant="outline" onClick={onHabilitar} title={e.email ? undefined : "Primero registre el correo del empleado"}>{e.user_id ? "Nuevo enlace de acceso" : "Habilitar acceso al portal"}</Button>}
+            {e.activo && <Button variant="outline" onClick={onHabilitar}>{e.user_id ? "Generar nuevo PIN" : "Habilitar acceso al portal"}</Button>}
             {e.activo ? <Button variant="destructive" onClick={onRetirar}>Retirar</Button> : <Button variant="secondary" onClick={reactivar}>Reactivar</Button>}
           </>
         )}

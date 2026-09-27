@@ -21,6 +21,7 @@ export const Route = createFileRoute("/_authenticated/equipos/$id")({
 const EVENTOS: Record<string, string> = {
   ingreso: "Ingreso", entrega: "Entrega", devolucion: "Devolución", en_reparacion: "En reparación", de_baja: "De baja",
   disponible: "Disponible", correccion_serie: "Corrección de serie", acta_anulada: "Acta anulada", carga_inicial: "Asignación por carga inicial",
+  asignacion: "Cambio de responsable", edicion: "Cambio de datos", asignado: "Asignado",
 };
 
 function FichaEquipo() {
@@ -32,10 +33,13 @@ function FichaEquipo() {
     queryFn: async () => {
       const [e, h] = await Promise.all([
         supabase.from("equipos").select("*, empleado:empleados(id, nombre)").eq("id", id).maybeSingle(),
-        supabase.from("equipo_historial").select("*").eq("equipo_id", id).order("created_at", { ascending: true }),
+        supabase.from("equipo_historial").select("*").eq("equipo_id", id).order("created_at", { ascending: false }),
       ]);
       if (e.error) throw e.error;
-      return { e: e.data, h: h.data ?? [] };
+      const ids = [...new Set((h.data ?? []).map((x) => x.user_id).filter(Boolean))] as string[];
+      const { data: ps } = ids.length ? await supabase.from("profiles").select("id, nombre, email").in("id", ids) : { data: [] };
+      const usuarios = Object.fromEntries((ps ?? []).map((p) => [p.id, p.nombre || p.email]));
+      return { e: e.data, h: h.data ?? [], usuarios };
     },
   });
   const e = q.data?.e;
@@ -75,14 +79,14 @@ function FichaEquipo() {
           {e.factura_path && <div className="col-span-2"><Button size="sm" variant="outline" onClick={verFactura}>Ver factura</Button></div>}
         </dl>
         <div className="rounded-md border border-border bg-card lg:col-span-2">
-          <div className="border-b border-border px-5 py-3 font-medium">Historial</div>
+          <div className="border-b border-border px-5 py-3 font-medium">Historial de cambios ({q.data!.h.length})</div>
           <ol className="relative space-y-0 p-5">
             {q.data!.h.map((h) => (
               <li key={h.id} className="relative border-l-2 border-accent pb-5 pl-5 last:pb-0">
                 <span className="absolute -left-[7px] top-1 h-3 w-3 rounded-full bg-primary" />
-                <div className="text-xs text-muted-foreground">{fmtFecha(h.created_at, true)}</div>
+                <div className="text-xs text-muted-foreground">{fmtFecha(h.created_at, true)} · {h.user_id ? (q.data!.usuarios?.[h.user_id] ?? "Usuario") : "Sistema"}</div>
                 <div className="font-medium">{EVENTOS[h.evento] ?? h.evento}</div>
-                {h.detalle && <div className="text-sm text-muted-foreground">{h.detalle}</div>}
+                {h.detalle && <div className="text-sm text-muted-foreground">{h.detalle.replace(/en_reparacion/g, "en reparación").replace(/de_baja/g, "de baja")}</div>}
                 {h.acta_id && <Link to="/actas/$id" params={{ id: h.acta_id }} className="text-xs text-primary hover:underline">Ver acta</Link>}
               </li>
             ))}

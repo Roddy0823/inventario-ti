@@ -151,7 +151,7 @@ function AnularDialog({ acta, onClose, onDone }: { acta: Fila | null; onClose: (
     <Dialog open={!!acta} onOpenChange={(o) => { if (!o) { setMotivo(""); onClose(); } }}>
       <DialogContent>
         <DialogHeader><DialogTitle>Anular acta #{acta?.numero}</DialogTitle></DialogHeader>
-        <p className="text-sm text-muted-foreground">{acta?.estado === "firmada" ? "El acta está firmada: al anularla se revierten los cambios de los equipos. " : ""}Esta acción queda registrada en la auditoría.</p>
+        <p className="text-sm text-muted-foreground">{acta?.estado === "firmada" ? "El acta está firmada: revise después el estado de sus equipos. " : ""}Esta acción queda registrada en la auditoría.</p>
         <Textarea placeholder="Motivo de la anulación (obligatorio)" value={motivo} onChange={(e) => setMotivo(e.target.value)} />
         <DialogFooter><Button variant="destructive" onClick={confirmar} disabled={!motivo.trim() || loading}>Anular acta</Button></DialogFooter>
       </DialogContent>

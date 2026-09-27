@@ -14,16 +14,538 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      acta_items: {
+        Row: {
+          acta_id: string
+          created_at: string
+          equipo_id: string
+          id: string
+        }
+        Insert: {
+          acta_id: string
+          created_at?: string
+          equipo_id: string
+          id?: string
+        }
+        Update: {
+          acta_id?: string
+          created_at?: string
+          equipo_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "acta_items_acta_id_fkey"
+            columns: ["acta_id"]
+            isOneToOne: false
+            referencedRelation: "actas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "acta_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      actas: {
+        Row: {
+          anulada_at: string | null
+          anulada_motivo: string | null
+          anulada_por: string | null
+          created_at: string
+          empleado_id: string
+          estado: Database["public"]["Enums"]["acta_estado"]
+          firma_ip: string | null
+          firma_medio: string | null
+          firma_path: string | null
+          firma_user_agent: string | null
+          firmado_at: string | null
+          id: string
+          numero: number
+          observaciones: string | null
+          pdf_path: string | null
+          tecnico_id: string
+          tecnico_nombre: string | null
+          tipo: Database["public"]["Enums"]["acta_tipo"]
+          updated_at: string
+        }
+        Insert: {
+          anulada_at?: string | null
+          anulada_motivo?: string | null
+          anulada_por?: string | null
+          created_at?: string
+          empleado_id: string
+          estado?: Database["public"]["Enums"]["acta_estado"]
+          firma_ip?: string | null
+          firma_medio?: string | null
+          firma_path?: string | null
+          firma_user_agent?: string | null
+          firmado_at?: string | null
+          id?: string
+          numero?: never
+          observaciones?: string | null
+          pdf_path?: string | null
+          tecnico_id?: string
+          tecnico_nombre?: string | null
+          tipo: Database["public"]["Enums"]["acta_tipo"]
+          updated_at?: string
+        }
+        Update: {
+          anulada_at?: string | null
+          anulada_motivo?: string | null
+          anulada_por?: string | null
+          created_at?: string
+          empleado_id?: string
+          estado?: Database["public"]["Enums"]["acta_estado"]
+          firma_ip?: string | null
+          firma_medio?: string | null
+          firma_path?: string | null
+          firma_user_agent?: string | null
+          firmado_at?: string | null
+          id?: string
+          numero?: never
+          observaciones?: string | null
+          pdf_path?: string | null
+          tecnico_id?: string
+          tecnico_nombre?: string | null
+          tipo?: Database["public"]["Enums"]["acta_tipo"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "actas_empleado_id_fkey"
+            columns: ["empleado_id"]
+            isOneToOne: false
+            referencedRelation: "empleados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auditoria: {
+        Row: {
+          accion: string
+          antes: Json | null
+          created_at: string
+          despues: Json | null
+          detalle: string | null
+          id: number
+          registro_id: string | null
+          tabla: string
+          user_id: string | null
+        }
+        Insert: {
+          accion: string
+          antes?: Json | null
+          created_at?: string
+          despues?: Json | null
+          detalle?: string | null
+          id?: never
+          registro_id?: string | null
+          tabla: string
+          user_id?: string | null
+        }
+        Update: {
+          accion?: string
+          antes?: Json | null
+          created_at?: string
+          despues?: Json | null
+          detalle?: string | null
+          id?: never
+          registro_id?: string | null
+          tabla?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      catalogo_items: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          nombre: string
+          tipo: Database["public"]["Enums"]["catalogo_tipo"]
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+          tipo: Database["public"]["Enums"]["catalogo_tipo"]
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+          tipo?: Database["public"]["Enums"]["catalogo_tipo"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      empleados: {
+        Row: {
+          activo: boolean
+          area_id: string | null
+          cargo: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          empresa_id: string | null
+          id: string
+          identificacion: string
+          nombre: string
+          sede_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          activo?: boolean
+          area_id?: string | null
+          cargo?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          empresa_id?: string | null
+          id?: string
+          identificacion: string
+          nombre: string
+          sede_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          activo?: boolean
+          area_id?: string | null
+          cargo?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          empresa_id?: string | null
+          id?: string
+          identificacion?: string
+          nombre?: string
+          sede_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empleados_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "empleados_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "empleados_sede_id_fkey"
+            columns: ["sede_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipo_historial: {
+        Row: {
+          acta_id: string | null
+          created_at: string
+          detalle: string | null
+          equipo_id: string
+          evento: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          acta_id?: string | null
+          created_at?: string
+          detalle?: string | null
+          equipo_id: string
+          evento: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          acta_id?: string | null
+          created_at?: string
+          detalle?: string | null
+          equipo_id?: string
+          evento?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipo_historial_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipos: {
+        Row: {
+          codigo_interno: boolean
+          created_at: string
+          created_by: string | null
+          empleado_id: string | null
+          estado: Database["public"]["Enums"]["equipo_estado"]
+          factura_path: string | null
+          fecha_ingreso: string
+          garantia_fin: string | null
+          id: string
+          marca_id: string | null
+          modelo: string | null
+          observaciones: string | null
+          proveedor: string | null
+          sede_id: string | null
+          serie: string
+          tipo_id: string
+          updated_at: string
+        }
+        Insert: {
+          codigo_interno?: boolean
+          created_at?: string
+          created_by?: string | null
+          empleado_id?: string | null
+          estado?: Database["public"]["Enums"]["equipo_estado"]
+          factura_path?: string | null
+          fecha_ingreso?: string
+          garantia_fin?: string | null
+          id?: string
+          marca_id?: string | null
+          modelo?: string | null
+          observaciones?: string | null
+          proveedor?: string | null
+          sede_id?: string | null
+          serie: string
+          tipo_id: string
+          updated_at?: string
+        }
+        Update: {
+          codigo_interno?: boolean
+          created_at?: string
+          created_by?: string | null
+          empleado_id?: string | null
+          estado?: Database["public"]["Enums"]["equipo_estado"]
+          factura_path?: string | null
+          fecha_ingreso?: string
+          garantia_fin?: string | null
+          id?: string
+          marca_id?: string | null
+          modelo?: string | null
+          observaciones?: string | null
+          proveedor?: string | null
+          sede_id?: string | null
+          serie?: string
+          tipo_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipos_empleado_id_fkey"
+            columns: ["empleado_id"]
+            isOneToOne: false
+            referencedRelation: "empleados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_marca_id_fkey"
+            columns: ["marca_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_sede_id_fkey"
+            columns: ["sede_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_tipo_id_fkey"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          activo: boolean
+          created_at: string
+          email: string
+          id: string
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          email?: string
+          id: string
+          nombre?: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tokens_firma: {
+        Row: {
+          acta_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          acta_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          acta_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tokens_firma_acta_id_fkey"
+            columns: ["acta_id"]
+            isOneToOne: false
+            referencedRelation: "actas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_permisos: {
+        Row: {
+          created_at: string
+          id: string
+          permiso: Database["public"]["Enums"]["app_permiso"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permiso: Database["public"]["Enums"]["app_permiso"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permiso?: Database["public"]["Enums"]["app_permiso"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      anular_acta: {
+        Args: { p_acta: string; p_motivo: string }
+        Returns: undefined
+      }
+      cambiar_estado_equipo: {
+        Args: {
+          p_equipo: string
+          p_estado: Database["public"]["Enums"]["equipo_estado"]
+          p_motivo: string
+        }
+        Returns: undefined
+      }
+      corregir_serie: {
+        Args: { p_equipo: string; p_motivo: string; p_serie: string }
+        Returns: undefined
+      }
+      has_permiso: {
+        Args: {
+          _p: Database["public"]["Enums"]["app_permiso"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_active: { Args: { _user_id: string }; Returns: boolean }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
+      log_evento: {
+        Args: { p_accion: string; p_detalle?: string }
+        Returns: undefined
+      }
+      my_empleado_id: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      acta_estado: "pendiente" | "firmada" | "anulada"
+      acta_tipo: "entrega" | "devolucion"
+      app_permiso:
+        | "equipos_editar"
+        | "empleados_editar"
+        | "cargas_masivas"
+        | "actas_entrega"
+        | "actas_devolucion"
+        | "firmas_capturar"
+        | "repositorio_ver"
+        | "reportes_exportar"
+      app_role: "admin" | "auxiliar" | "empleado"
+      catalogo_tipo: "marca" | "tipo_equipo" | "sede" | "area" | "empresa"
+      equipo_estado: "disponible" | "asignado" | "en_reparacion" | "de_baja"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +672,22 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      acta_estado: ["pendiente", "firmada", "anulada"],
+      acta_tipo: ["entrega", "devolucion"],
+      app_permiso: [
+        "equipos_editar",
+        "empleados_editar",
+        "cargas_masivas",
+        "actas_entrega",
+        "actas_devolucion",
+        "firmas_capturar",
+        "repositorio_ver",
+        "reportes_exportar",
+      ],
+      app_role: ["admin", "auxiliar", "empleado"],
+      catalogo_tipo: ["marca", "tipo_equipo", "sede", "area", "empresa"],
+      equipo_estado: ["disponible", "asignado", "en_reparacion", "de_baja"],
+    },
   },
 } as const

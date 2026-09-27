@@ -104,11 +104,11 @@ export const habilitarAccesoEmpleado = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ empleadoId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: ok } = await context.supabase.rpc("has_permiso", { _user_id: context.userId, _p: "empleados_editar" });
-    if (!ok) throw new Error("No tiene permiso para habilitar accesos.");
+    if (!ok) return { error: "No tiene permiso para habilitar accesos." };
     const { data: emp } = await context.supabase.from("empleados").select("*").eq("id", data.empleadoId).maybeSingle();
-    if (!emp) throw new Error("Empleado no encontrado");
-    if (!emp.activo) throw new Error("El empleado está inactivo.");
-    if (!emp.email) throw new Error("El empleado no tiene correo registrado.");
+    if (!emp) return { error: "Empleado no encontrado" };
+    if (!emp.activo) return { error: "El empleado está inactivo." };
+    if (!emp.email) return { error: "El empleado no tiene correo registrado." };
     const email = emp.email.toLowerCase();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let userId = emp.user_id;

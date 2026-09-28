@@ -32,7 +32,8 @@ function Usuarios() {
         supabase.from("user_roles").select("user_id, role"),
         supabase.from("user_permisos").select("user_id, permiso"),
       ]);
-      return (p.data ?? []).map((x) => ({
+      const visibles = new Set((r.data ?? []).map((y) => y.user_id));
+      return (p.data ?? []).filter((x) => visibles.has(x.id)).map((x) => ({
         id: x.id, nombre: x.nombre, email: x.email, activo: x.activo,
         roles: (r.data ?? []).filter((y) => y.user_id === x.id).map((y) => y.role),
         permisos: (pe.data ?? []).filter((y) => y.user_id === x.id).map((y) => y.permiso as Permiso),

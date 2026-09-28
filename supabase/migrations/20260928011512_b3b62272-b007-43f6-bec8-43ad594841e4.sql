@@ -1,0 +1,14 @@
+revoke execute on function public.acta_items_before_insert() from authenticated, anon, public;
+revoke execute on function public.actas_after_update() from authenticated, anon, public;
+revoke execute on function public.actas_before_insert() from authenticated, anon, public;
+revoke execute on function public.actas_before_update() from authenticated, anon, public;
+revoke execute on function public.audit_trigger() from authenticated, anon, public;
+revoke execute on function public.auditoria_inmutable() from authenticated, anon, public;
+revoke execute on function public.empleados_before_update() from authenticated, anon, public;
+revoke execute on function public.equipos_after_insert() from authenticated, anon, public;
+revoke execute on function public.equipos_after_update() from authenticated, anon, public;
+revoke execute on function public.equipos_before_insert() from authenticated, anon, public;
+revoke execute on function public.equipos_before_update() from authenticated, anon, public;
+revoke execute on function public.handle_new_user() from authenticated, anon, public;
+revoke execute on function public.update_updated_at_column() from authenticated, anon, public;
+revoke execute on function public.user_roles_guard_admin() from authenticated, anon, public;

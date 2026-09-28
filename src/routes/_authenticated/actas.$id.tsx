@@ -51,7 +51,7 @@ function DetalleActa() {
   const vista = {
     numero: a.numero, tipo: a.tipo, created_at: a.created_at, observaciones: a.observaciones, tecnico: a.tecnico_nombre,
     empleado: { nombre: emp.nombre, identificacion: emp.identificacion, cargo: emp.cargo ?? "", area: cat.nombre(emp.area_id), sede: cat.nombre(emp.sede_id) },
-    equipos: q.data!.equipos.map((e) => ({ serie: e!.serie, modelo: e!.modelo ?? "", tipo: cat.nombre(e!.tipo_id), marca: cat.nombre(e!.marca_id) })),
+    equipos: q.data!.equipos.map((e) => ({ serie: e!.serie, activo_fijo: e!.activo_fijo ?? "", modelo: e!.modelo ?? "", tipo: cat.nombre(e!.tipo_id), marca: cat.nombre(e!.marca_id) })),
   };
 
   async function copiarEnlace() {

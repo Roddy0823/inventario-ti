@@ -7,7 +7,7 @@ export type ActaVista = {
   observaciones: string | null;
   tecnico: string | null;
   empleado: { nombre: string; identificacion: string; cargo: string; area: string; sede: string; empresa?: string };
-  equipos: { serie: string; modelo: string; tipo: string; marca: string }[];
+  equipos: { serie: string; activo_fijo?: string; modelo: string; tipo: string; marca: string }[];
 };
 
 export function ActaResumen({ a }: { a: ActaVista }) {
@@ -36,7 +36,7 @@ export function ActaResumen({ a }: { a: ActaVista }) {
           {a.equipos.map((q) => (
             <li key={q.serie} className="flex flex-wrap justify-between gap-2 py-2">
               <span>{q.tipo} {q.marca} {q.modelo}</span>
-              <span className="font-mono text-xs">{q.serie}</span>
+              <span className="font-mono text-xs">{q.serie}{q.activo_fijo ? ` · AF ${q.activo_fijo}` : ""}</span>
             </li>
           ))}
         </ul>

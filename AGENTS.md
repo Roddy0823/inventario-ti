@@ -19,4 +19,4 @@
 - El historial de equipos lo escribe el trigger `equipos_after_update`; las funciones que cambian estado pasan contexto con `app.hist_evento`, `app.hist_detalle` y `app.acta_id` — una sola línea de tiempo sin duplicados.
 - La firma del técnico se guarda en `profiles.firma_path` y se copia al acta al crearla (`actas.tecnico_firma_path`) — cambios posteriores de firma no alteran actas emitidas.
 - Multi-ecosistema: cada admin tiene datos aislados vía `owner_id` en empleados/equipos/actas/catalogo_items/user_roles; `my_owner_id()` resuelve el ecosistema (admin = su id, auxiliar = el de su admin) y las políticas RLS filtran por él — nunca usar `is_staff()` solo para visibilidad de datos de negocio.
-- El rol admin solo se asigna por SQL directo; el trigger `user_roles_guard_admin` rechaza asignarlo desde la app.
+- El rol admin solo se asigna por SQL directo; el trigger `user_roles_guard_admin` rechaza asignarlo desde la app. Un solo admin en todo el sistema (índice único `user_roles_un_solo_admin`) y cédula única global — evitar duplicidades.

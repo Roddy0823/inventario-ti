@@ -75,6 +75,7 @@ export type Database = {
           id: string
           numero: number
           observaciones: string | null
+          owner_id: string | null
           pdf_path: string | null
           tecnico_firma_path: string | null
           tecnico_id: string
@@ -97,6 +98,7 @@ export type Database = {
           id?: string
           numero?: never
           observaciones?: string | null
+          owner_id?: string | null
           pdf_path?: string | null
           tecnico_firma_path?: string | null
           tecnico_id?: string
@@ -119,6 +121,7 @@ export type Database = {
           id?: string
           numero?: never
           observaciones?: string | null
+          owner_id?: string | null
           pdf_path?: string | null
           tecnico_firma_path?: string | null
           tecnico_id?: string
@@ -178,6 +181,7 @@ export type Database = {
           created_at: string
           id: string
           nombre: string
+          owner_id: string | null
           tipo: Database["public"]["Enums"]["catalogo_tipo"]
           updated_at: string
         }
@@ -186,6 +190,7 @@ export type Database = {
           created_at?: string
           id?: string
           nombre: string
+          owner_id?: string | null
           tipo: Database["public"]["Enums"]["catalogo_tipo"]
           updated_at?: string
         }
@@ -194,6 +199,7 @@ export type Database = {
           created_at?: string
           id?: string
           nombre?: string
+          owner_id?: string | null
           tipo?: Database["public"]["Enums"]["catalogo_tipo"]
           updated_at?: string
         }
@@ -211,6 +217,7 @@ export type Database = {
           id: string
           identificacion: string
           nombre: string
+          owner_id: string | null
           pin_bloqueo_hasta: string | null
           pin_intentos: number
           sede_id: string | null
@@ -228,6 +235,7 @@ export type Database = {
           id?: string
           identificacion: string
           nombre: string
+          owner_id?: string | null
           pin_bloqueo_hasta?: string | null
           pin_intentos?: number
           sede_id?: string | null
@@ -245,6 +253,7 @@ export type Database = {
           id?: string
           identificacion?: string
           nombre?: string
+          owner_id?: string | null
           pin_bloqueo_hasta?: string | null
           pin_intentos?: number
           sede_id?: string | null
@@ -332,6 +341,7 @@ export type Database = {
           nombre_equipo: string | null
           novedad: string | null
           observaciones: string | null
+          owner_id: string | null
           proveedor: string | null
           sede_id: string | null
           serie: string
@@ -357,6 +367,7 @@ export type Database = {
           nombre_equipo?: string | null
           novedad?: string | null
           observaciones?: string | null
+          owner_id?: string | null
           proveedor?: string | null
           sede_id?: string | null
           serie: string
@@ -382,6 +393,7 @@ export type Database = {
           nombre_equipo?: string | null
           novedad?: string | null
           observaciones?: string | null
+          owner_id?: string | null
           proveedor?: string | null
           sede_id?: string | null
           serie?: string
@@ -512,16 +524,19 @@ export type Database = {
       user_roles: {
         Row: {
           id: string
+          owner_id: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           id?: string
+          owner_id?: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           id?: string
+          owner_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
@@ -574,6 +589,7 @@ export type Database = {
         Returns: undefined
       }
       my_empleado_id: { Args: never; Returns: string }
+      my_owner_id: { Args: never; Returns: string }
     }
     Enums: {
       acta_estado: "pendiente" | "firmada" | "anulada"

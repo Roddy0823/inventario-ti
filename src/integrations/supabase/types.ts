@@ -590,6 +590,13 @@ export type Database = {
       }
       my_empleado_id: { Args: never; Returns: string }
       my_owner_id: { Args: never; Returns: string }
+      panel_conteos: {
+        Args: never
+        Returns: {
+          estado: Database["public"]["Enums"]["equipo_estado"]
+          total: number
+        }[]
+      }
     }
     Enums: {
       acta_estado: "pendiente" | "firmada" | "anulada"

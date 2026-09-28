@@ -44,7 +44,7 @@ export const crearAuxiliar = createServerFn({ method: "POST" })
     if (error || !u.user) return { error: error?.message.includes("already") ? "Ya existe un usuario con ese correo." : error?.message ?? "No se pudo crear el usuario." };
     const id = u.user.id;
     await supabaseAdmin.from("profiles").upsert({ id, email: data.email.toLowerCase(), nombre: data.nombre, activo: true });
-    await supabaseAdmin.from("user_roles").insert({ user_id: id, role: "auxiliar" });
+    await supabaseAdmin.from("user_roles").insert({ user_id: id, role: "auxiliar", owner_id: context.userId });
     if (data.permisos.length) await supabaseAdmin.from("user_permisos").insert(data.permisos.map((p) => ({ user_id: id, permiso: p })));
     await registrarAuditoria(supabaseAdmin, context.userId, "usuarios", "CREAR_AUXILIAR", id, `Auxiliar ${data.email} creado con permisos: ${data.permisos.join(", ") || "ninguno"}`);
     return { id };

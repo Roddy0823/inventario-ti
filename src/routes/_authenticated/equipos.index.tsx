@@ -7,7 +7,7 @@ import { useMe } from "@/lib/me";
 import { useCatalogos } from "@/lib/catalogos";
 import { ESTADO_EQUIPO, errMsg, fmtFecha } from "@/lib/constantes";
 import { FinalizarReparacion } from "@/components/FinalizarReparacion";
-import * as XLSX from "xlsx";
+
 import { PageHeader, EstadoEquipo } from "@/components/Estado";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -134,7 +134,8 @@ function ListaEspecial({ tab, lista, puedeEditar }: { tab: "en_reparacion" | "de
       por: r?.user_id ? hq.data?.usuarios[r.user_id] ?? "Usuario" : "—",
     };
   };
-  function exportar() {
+  async function exportar() {
+    const XLSX = await import("xlsx");
     const filas = lista.map((e) => {
       const i = info(e.id);
       const emp = (e.empleado as { nombre: string } | null)?.nombre ?? "";

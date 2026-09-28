@@ -1,4 +1,3 @@
-import { fetchAll } from "@/lib/fetchAll";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,13 +18,14 @@ function Panel() {
     enabled: !!me?.isStaff,
     queryFn: async () => {
       const [eq, pend, ult] = await Promise.all([
-        fetchAll((a, b) => supabase.from("equipos").select("estado").order("id").range(a, b)),
+        supabase.rpc("panel_conteos"),
         supabase.from("actas").select("id", { count: "exact", head: true }).eq("estado", "pendiente"),
         supabase.from("actas").select("id, numero, tipo, estado, created_at, empleado:empleados(nombre)").order("created_at", { ascending: false }).limit(8),
       ]);
       const conteo: Record<string, number> = {};
-      for (const e of eq) conteo[e.estado] = (conteo[e.estado] ?? 0) + 1;
-      return { conteo, total: eq.length, pendientes: pend.count ?? 0, ultimas: ult.data ?? [] };
+      let total = 0;
+      for (const e of (eq.data ?? []) as { estado: string; total: number }[]) { conteo[e.estado] = Number(e.total); total += Number(e.total); }
+      return { conteo, total, pendientes: pend.count ?? 0, ultimas: ult.data ?? [] };
     },
   });
 

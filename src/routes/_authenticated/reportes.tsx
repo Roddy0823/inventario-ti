@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
 import { useCatalogos } from "@/lib/catalogos";
 import { ESTADO_EQUIPO, TIPO_ACTA, descargarCSV, fmtFecha } from "@/lib/constantes";
-import { reportePdf } from "@/lib/reportePdf";
+
 import { PageHeader } from "@/components/Estado";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +52,7 @@ function Reportes() {
       } else {
         const cuenta: Record<string, number> = {};
         data.forEach((e) => { const l = ESTADO_EQUIPO[e.estado]?.label ?? e.estado; cuenta[l] = (cuenta[l] ?? 0) + 1; });
-        reportePdf({
+        (await import("@/lib/reportePdf")).reportePdf({
           titulo: "REPORTE DE INVENTARIO ACTUAL",
           subtitulo: `Estado: ${estado ? ESTADO_EQUIPO[estado as "disponible"]?.label : "Todos"}  ·  Sede: ${sede ? cat.nombre(sede) : "Todas"}`,
           resumen: [`Total equipos: ${data.length}`, ...Object.entries(cuenta).map(([k, v]) => `${k}: ${v}`)],
@@ -84,7 +84,7 @@ function Reportes() {
           tipo_equipo: cat.nombre(e.tipo_id), marca: cat.nombre(e.marca_id), modelo: e.modelo ?? "", serie: e.serie, activo_fijo: e.activo_fijo ?? "", estado_fisico: estado, medio_firma: a.firma_medio ?? "",
         })));
       } else {
-        reportePdf({
+        (await import("@/lib/reportePdf")).reportePdf({
           titulo: "REPORTE DE ACTAS FIRMADAS — DETALLE DE EQUIPOS",
           subtitulo: `Periodo: ${fmtFecha(desde)} a ${fmtFecha(hasta)}`,
           resumen: [`Actas: ${data.length} (${ent} entregas, ${data.length - ent} devoluciones)`, `Equipos entregados: ${eqEnt}`, `Equipos devueltos: ${filas.length - eqEnt}`],

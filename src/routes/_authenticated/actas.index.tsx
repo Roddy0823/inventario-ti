@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { z } from "zod";
-import JSZip from "jszip";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
 import { fetchAll } from "@/lib/fetchAll";
@@ -64,6 +64,7 @@ function Repositorio() {
     if (elegidas.length > MAX_ZIP) return toast.error(`Máximo ${MAX_ZIP} actas por descarga.`);
     setZipando(true);
     try {
+      const { default: JSZip } = await import("jszip");
       const z = new JSZip();
       for (const a of elegidas) {
         const r = await url({ data: { actaId: a.id } });

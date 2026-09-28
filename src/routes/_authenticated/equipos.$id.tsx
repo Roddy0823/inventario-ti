@@ -129,7 +129,7 @@ function EditarEquipo({ e }: { e: Eq }) {
       proveedor: f.proveedor || null, garantia_fin: f.garantia_fin || null, observaciones: f.observaciones || null,
       activo_fijo: f.activo_fijo.trim() || null, nombre_equipo: f.nombre_equipo.trim() || null,
       sistema_operativo: f.sistema_operativo.trim() || null, factura_numero: f.factura_numero.trim() || null,
-      anio_compra: anio, novedad: f.novedad.trim() || null, fecha_ingreso: f.fecha_ingreso || undefined,
+      anio_compra: anio, novedad: f.novedad.trim() || null, ...(f.fecha_ingreso ? { fecha_ingreso: f.fecha_ingreso } : {}),
     }).eq("id", e.id);
     if (error) return toast.error(error.code === "23505" ? "Ese activo fijo ya existe en otro equipo." : errMsg(error));
     toast.success("Equipo actualizado"); setOpen(false);

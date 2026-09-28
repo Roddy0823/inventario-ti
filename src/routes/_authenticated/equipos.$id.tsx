@@ -103,16 +103,35 @@ function Dato({ k, v }: { k: string; v: React.ReactNode }) {
   return <div><dt className="text-xs text-muted-foreground">{k}</dt><dd>{v}</dd></div>;
 }
 
-type Eq = { id: string; modelo: string | null; marca_id: string | null; sede_id: string | null; proveedor: string | null; garantia_fin: string | null; observaciones: string | null };
+type Eq = {
+  id: string; modelo: string | null; marca_id: string | null; sede_id: string | null; tipo_id: string | null;
+  proveedor: string | null; garantia_fin: string | null; observaciones: string | null;
+  activo_fijo: string | null; nombre_equipo: string | null; sistema_operativo: string | null;
+  factura_numero: string | null; anio_compra: number | null; novedad: string | null; fecha_ingreso: string | null;
+};
 
 function EditarEquipo({ e }: { e: Eq }) {
   const qc = useQueryClient();
   const cat = useCatalogos();
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ modelo: e.modelo ?? "", marca_id: e.marca_id ?? "", sede_id: e.sede_id ?? "", proveedor: e.proveedor ?? "", garantia_fin: e.garantia_fin ?? "", observaciones: e.observaciones ?? "" });
+  const [f, setF] = useState({
+    modelo: e.modelo ?? "", marca_id: e.marca_id ?? "", sede_id: e.sede_id ?? "", tipo_id: e.tipo_id ?? "",
+    proveedor: e.proveedor ?? "", garantia_fin: e.garantia_fin ?? "", observaciones: e.observaciones ?? "",
+    activo_fijo: e.activo_fijo ?? "", nombre_equipo: e.nombre_equipo ?? "", sistema_operativo: e.sistema_operativo ?? "",
+    factura_numero: e.factura_numero ?? "", anio_compra: e.anio_compra ? String(e.anio_compra) : "", novedad: e.novedad ?? "",
+    fecha_ingreso: e.fecha_ingreso ?? "",
+  });
   async function guardar() {
-    const { error } = await supabase.from("equipos").update({ modelo: f.modelo || null, marca_id: f.marca_id || null, sede_id: f.sede_id || null, proveedor: f.proveedor || null, garantia_fin: f.garantia_fin || null, observaciones: f.observaciones || null }).eq("id", e.id);
-    if (error) return toast.error(errMsg(error));
+    const anio = f.anio_compra.trim() ? parseInt(f.anio_compra.trim(), 10) : null;
+    if (anio !== null && (isNaN(anio) || anio < 1990 || anio > 2100)) return toast.error("Año de compra inválido");
+    const { error } = await supabase.from("equipos").update({
+      modelo: f.modelo || null, marca_id: f.marca_id || null, sede_id: f.sede_id || null,
+      proveedor: f.proveedor || null, garantia_fin: f.garantia_fin || null, observaciones: f.observaciones || null,
+      activo_fijo: f.activo_fijo.trim() || null, nombre_equipo: f.nombre_equipo.trim() || null,
+      sistema_operativo: f.sistema_operativo.trim() || null, factura_numero: f.factura_numero.trim() || null,
+      anio_compra: anio, novedad: f.novedad.trim() || null, ...(f.fecha_ingreso ? { fecha_ingreso: f.fecha_ingreso } : {}),
+    }).eq("id", e.id);
+    if (error) return toast.error(error.code === "23505" ? "Ese activo fijo ya existe en otro equipo." : errMsg(error));
     toast.success("Equipo actualizado"); setOpen(false);
     qc.invalidateQueries({ queryKey: ["equipo", e.id] }); qc.invalidateQueries({ queryKey: ["equipos"] });
   }
@@ -120,16 +139,24 @@ function EditarEquipo({ e }: { e: Eq }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button variant="outline">Editar</Button></DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Editar equipo</DialogTitle></DialogHeader>
-        <div className="grid gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1"><Label>Tipo de equipo</Label><select className={s} value={f.tipo_id} onChange={(x) => setF({ ...f, tipo_id: x.target.value })}><option value="">—</option>{cat.byTipo("tipo_equipo").map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select></div>
           <div className="space-y-1"><Label>Marca</Label><select className={s} value={f.marca_id} onChange={(x) => setF({ ...f, marca_id: x.target.value })}><option value="">—</option>{cat.byTipo("marca").map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select></div>
           <div className="space-y-1"><Label>Modelo</Label><Input value={f.modelo} onChange={(x) => setF({ ...f, modelo: x.target.value })} /></div>
+          <div className="space-y-1"><Label>Activo fijo</Label><Input value={f.activo_fijo} onChange={(x) => setF({ ...f, activo_fijo: x.target.value })} /></div>
+          <div className="space-y-1"><Label>Nombre de equipo</Label><Input value={f.nombre_equipo} onChange={(x) => setF({ ...f, nombre_equipo: x.target.value })} /></div>
+          <div className="space-y-1"><Label>Sistema operativo</Label><Input value={f.sistema_operativo} onChange={(x) => setF({ ...f, sistema_operativo: x.target.value })} /></div>
           <div className="space-y-1"><Label>Sede</Label><select className={s} value={f.sede_id} onChange={(x) => setF({ ...f, sede_id: x.target.value })}><option value="">—</option>{cat.byTipo("sede").map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select></div>
           <div className="space-y-1"><Label>Proveedor</Label><Input value={f.proveedor} onChange={(x) => setF({ ...f, proveedor: x.target.value })} /></div>
+          <div className="space-y-1"><Label>Número de factura</Label><Input value={f.factura_numero} onChange={(x) => setF({ ...f, factura_numero: x.target.value })} /></div>
+          <div className="space-y-1"><Label>Año de compra</Label><Input inputMode="numeric" value={f.anio_compra} onChange={(x) => setF({ ...f, anio_compra: x.target.value })} /></div>
+          <div className="space-y-1"><Label>Fecha de ingreso</Label><Input type="date" value={f.fecha_ingreso} onChange={(x) => setF({ ...f, fecha_ingreso: x.target.value })} /></div>
           <div className="space-y-1"><Label>Fin de garantía</Label><Input type="date" value={f.garantia_fin} onChange={(x) => setF({ ...f, garantia_fin: x.target.value })} /></div>
-          <div className="space-y-1"><Label>Observaciones</Label><Textarea value={f.observaciones} onChange={(x) => setF({ ...f, observaciones: x.target.value })} /></div>
-          <p className="text-xs text-muted-foreground">La serie no es editable. El Administrador puede corregirla indicando un motivo.</p>
+          <div className="space-y-1 sm:col-span-2"><Label>Novedad</Label><Input value={f.novedad} onChange={(x) => setF({ ...f, novedad: x.target.value })} /></div>
+          <div className="space-y-1 sm:col-span-2"><Label>Observaciones</Label><Textarea value={f.observaciones} onChange={(x) => setF({ ...f, observaciones: x.target.value })} /></div>
+          <p className="text-xs text-muted-foreground sm:col-span-2">La serie no es editable. El Administrador puede corregirla indicando un motivo.</p>
         </div>
         <DialogFooter><Button onClick={guardar}>Guardar</Button></DialogFooter>
       </DialogContent>

@@ -5,6 +5,7 @@ import { useMe } from "@/lib/me";
 import { PageHeader, EstadoActa } from "@/components/Estado";
 import { ESTADO_EQUIPO, TIPO_ACTA, fmtFecha } from "@/lib/constantes";
 import { Button } from "@/components/ui/button";
+import { BannerStock } from "@/components/StockAlertas";
 import { useWebMCP } from "use-webmcp-tool";
 import { runWebMCPTool } from "@/lib/webmcp-telemetry";
 
@@ -52,6 +53,7 @@ function Panel() {
       <PageHeader title={`Hola, ${me?.nombre.split(" ")[0] ?? ""}`} desc="Estado general del inventario y actas.">
         {(me?.can("actas_entrega") || me?.can("actas_devolucion")) && <Button asChild><Link to="/actas/nueva">Nueva acta</Link></Button>}
       </PageHeader>
+      <BannerStock />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label="Equipos totales" value={s?.total} search={{ tab: "activos" }} />
         {Object.entries(ESTADO_EQUIPO).map(([k, v]) => <Stat key={k} label={v.label} value={s?.conteo[k] ?? 0} search={k === "disponible" || k === "asignado" ? { tab: "activos", estado: k } : { tab: k as "en_reparacion" | "de_baja" }} />)}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Progress } from "@/components/ui/progress";
 import * as XLSX from "xlsx";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +31,7 @@ export function ImportExcel({ isAdmin }: { isAdmin: boolean }) {
   const qc = useQueryClient();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [prog, setProg] = useState<string | null>(null);
+  const [pct, setPct] = useState(0);
   const [reporte, setReporte] = useState<Reporte[]>([]);
 
   async function leer(file: File) {
@@ -45,7 +47,7 @@ export function ImportExcel({ isAdmin }: { isAdmin: boolean }) {
     if (!plan) return;
     const rep: Reporte[] = [];
     try {
-      setProg("Preparando catálogos…");
+      setProg("Preparando catálogos…"); setPct(3);
       const cats = await fetchAll((a, b) => supabase.from("catalogo_items").select("id, tipo, nombre").order("id").range(a, b));
       const cat = new Map(cats.map((c) => [`${c.tipo}|${c.nombre.toLowerCase()}`, c.id]));
       const need = new Map<string, { tipo: CatTipo; nombre: string }>();
@@ -76,6 +78,7 @@ export function ImportExcel({ isAdmin }: { isAdmin: boolean }) {
         emps.set(ced, "");
       });
       for (let i = 0; i < nuevosEmp.length; i += 200) {
+        setProg(`Cargando empleados… ${i}/${nuevosEmp.length}`); setPct(5 + Math.round((i / Math.max(1, nuevosEmp.length)) * 30));
         const { data, error } = await supabase.from("empleados").insert(nuevosEmp.slice(i, i + 200) as never).select("id, identificacion");
         if (error) throw error;
         for (const e of data) emps.set(e.identificacion, e.id);
@@ -98,7 +101,7 @@ export function ImportExcel({ isAdmin }: { isAdmin: boolean }) {
           proveedor: cl(col(r, "Proveedor")), anio_compra: anio && /^\d{4}$/.test(anio) ? Number(anio) : null, sede_id: (s && idSede.get(s)) || (af && idSede.get(af)) || null, estado: "disponible" });
       });
       for (let i = 0; i < nuevosEq.length; i += 200) {
-        setProg(`Cargando equipos… ${i}/${nuevosEq.length}`);
+        setProg(`Cargando equipos… ${i}/${nuevosEq.length}`); setPct(35 + Math.round((i / Math.max(1, nuevosEq.length)) * 35));
         const { error } = await supabase.from("equipos").insert(nuevosEq.slice(i, i + 200) as never);
         if (error) throw error;
       }
@@ -117,6 +120,7 @@ export function ImportExcel({ isAdmin }: { isAdmin: boolean }) {
       });
       let n = 0;
       for (let i = 0; i < items.length; i += 300) {
+        setProg(`Registrando asignaciones… ${i}/${items.length}`); setPct(70 + Math.round((i / Math.max(1, items.length)) * 30));
         const { data, error } = await supabase.rpc("asignar_carga_inicial", { p_items: items.slice(i, i + 300) });
         if (error) throw error;
         n += data ?? 0;
@@ -125,7 +129,7 @@ export function ImportExcel({ isAdmin }: { isAdmin: boolean }) {
       toast.success(`${nuevosEmp.length} empleados, ${nuevosEq.length} equipos y ${n} asignaciones cargados`);
       setPlan(null); setReporte(rep);
       qc.invalidateQueries();
-    } catch (e) { toast.error(errMsg(e)); setReporte(rep); } finally { setProg(null); }
+    } catch (e) { toast.error(errMsg(e)); setReporte(rep); } finally { setProg(null); setPct(0); }
   }
 
   function descargarReporte() {
@@ -142,6 +146,7 @@ export function ImportExcel({ isAdmin }: { isAdmin: boolean }) {
         <div className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-card p-4 text-sm">
           <span>{plan.resumen}</span>
           <Button disabled={!!prog} onClick={procesar}>{prog ?? "Procesar carga"}</Button>
+          {prog && <div className="w-full basis-full space-y-1"><Progress value={pct} /><div className="text-xs text-muted-foreground">{pct}%</div></div>}
         </div>
       )}
       {reporte.length > 0 && (

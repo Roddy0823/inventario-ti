@@ -10,6 +10,7 @@ import { fetchAll } from "@/lib/fetchAll";
 import { TIPO_ACTA, ESTADO_ACTA, fmtFecha, errMsg } from "@/lib/constantes";
 import { urlArchivo } from "@/lib/firmas.functions";
 import { descargarPdfActa } from "@/lib/descargarPdf";
+import { DataTablePagination, FilasSkeleton, usePaginacion } from "@/components/DataTablePagination";
 import { PageHeader, EstadoActa } from "@/components/Estado";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ function Repositorio() {
   const [sel, setSel] = useState<string[]>([]);
   const [anular, setAnular] = useState<Fila | null>(null);
   const [zipando, setZipando] = useState(false);
+  const pag = usePaginacion(f);
 
   const q = useQuery({
     queryKey: ["actas", "repo"],
@@ -54,6 +56,7 @@ function Repositorio() {
   }, [q.data, f]);
   const tecnicos = useMemo(() => [...new Set((q.data ?? []).map((a) => a.tecnico_nombre).filter(Boolean) as string[])].sort(), [q.data]);
 
+  const pagina = filas.slice(pag.desde, pag.desde + pag.tamano);
   const puedeVer = me?.can("repositorio_ver");
   const descargables = filas.filter((a) => a.pdf_path);
   const todos = descargables.length > 0 && descargables.every((a) => sel.includes(a.id));
@@ -109,7 +112,8 @@ function Repositorio() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {filas.slice(0, 500).map((a) => (
+            {q.isLoading && <FilasSkeleton columnas={9} />}
+            {pagina.map((a) => (
               <tr key={a.id} className="hover:bg-muted/50">
                 <td className="px-3 py-2.5">{a.pdf_path && puedeVer && <Checkbox aria-label={`Seleccionar acta ${a.numero}`} checked={sel.includes(a.id)} onCheckedChange={(c) => setSel(c ? [...sel, a.id] : sel.filter((x) => x !== a.id))} />}</td>
                 <td className="px-4 py-2.5"><Link to="/actas/$id" params={{ id: a.id }} className="font-mono text-xs font-medium text-primary hover:underline">#{a.numero}</Link></td>
@@ -129,7 +133,7 @@ function Repositorio() {
           </tbody>
         </table>
       </div>
-      {filas.length > 500 && <p className="mt-2 text-xs text-muted-foreground">Mostrando 500 de {filas.length}. Use los filtros para acotar.</p>}
+      <DataTablePagination total={filas.length} pagina={pag.pagina} tamano={pag.tamano} onPagina={pag.setPagina} onTamano={pag.setTamano} />
       <AnularDialog acta={anular} onClose={() => setAnular(null)} onDone={() => { setAnular(null); qc.invalidateQueries({ queryKey: ["actas"] }); qc.invalidateQueries({ queryKey: ["equipos"] }); }} />
     </div>
   );

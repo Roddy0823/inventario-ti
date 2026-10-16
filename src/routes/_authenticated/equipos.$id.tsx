@@ -13,6 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { DataTablePagination, usePaginacion } from "@/components/DataTablePagination";
+import { ChevronDown } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/equipos/$id")({
   head: () => ({ meta: [{ title: "Ficha del equipo — Finesa" }, { name: "description", content: "Datos e historial del equipo." }] }),
@@ -82,19 +85,44 @@ function FichaEquipo() {
         </dl>
         <div className="rounded-md border border-border bg-card lg:col-span-2">
           <div className="border-b border-border px-5 py-3 font-medium">Historial de cambios ({q.data!.h.length})</div>
-          <ol className="relative space-y-0 p-5">
-            {q.data!.h.map((h) => (
-              <li key={h.id} className="relative border-l-2 border-accent pb-5 pl-5 last:pb-0">
-                <span className="absolute -left-[7px] top-1 h-3 w-3 rounded-full bg-primary" />
-                <div className="text-xs text-muted-foreground">{fmtFecha(h.created_at, true)} · {h.user_id ? (q.data!.usuarios?.[h.user_id] ?? "Usuario") : "Sistema"}</div>
-                <div className="font-medium">{EVENTOS[h.evento] ?? h.evento}</div>
-                {h.detalle && <div className="text-sm text-muted-foreground">{h.detalle.replace(/en_reparacion/g, "en reparación").replace(/de_baja/g, "de baja")}</div>}
-                {h.acta_id && <Link to="/actas/$id" params={{ id: h.acta_id }} className="text-xs text-primary hover:underline">Ver acta</Link>}
-              </li>
-            ))}
-          </ol>
+          <Timeline h={q.data!.h} usuarios={q.data!.usuarios} />
         </div>
       </div>
+    </div>
+  );
+}
+
+type Hist = { id: string; evento: string; detalle: string | null; acta_id: string | null; user_id: string | null; created_at: string };
+
+function Timeline({ h, usuarios }: { h: Hist[]; usuarios: Record<string, string> }) {
+  const pag = usePaginacion();
+  const visibles = h.slice(pag.desde, pag.desde + pag.tamano);
+  if (!h.length) return <p className="p-5 text-sm text-muted-foreground">Sin movimientos registrados.</p>;
+  return (
+    <div className="p-5">
+      <ol className="relative">
+        {visibles.map((x) => (
+          <li key={x.id} className="relative border-l-2 border-accent pb-3 pl-5 last:pb-0">
+            <span className="absolute -left-[7px] top-1.5 h-3 w-3 rounded-full bg-primary" />
+            <Collapsible>
+              <CollapsibleTrigger className="group flex w-full items-start justify-between gap-2 rounded px-1 py-0.5 text-left hover:bg-muted/50">
+                <div>
+                  <div className="text-sm font-medium">{EVENTOS[x.evento] ?? x.evento}</div>
+                  <div className="text-xs text-muted-foreground">{fmtFecha(x.created_at, true)} · {x.user_id ? (usuarios[x.user_id] ?? "Usuario") : "Sistema"}</div>
+                </div>
+                {(x.detalle || x.acta_id) && <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />}
+              </CollapsibleTrigger>
+              {(x.detalle || x.acta_id) && (
+                <CollapsibleContent className="px-1 pb-1">
+                  {x.detalle && <div className="mt-1 rounded bg-muted/50 p-2 text-sm text-muted-foreground">{x.detalle.replace(/en_reparacion/g, "en reparación").replace(/de_baja/g, "de baja")}</div>}
+                  {x.acta_id && <Link to="/actas/$id" params={{ id: x.acta_id }} className="mt-1 inline-block text-xs text-primary hover:underline">Ver acta</Link>}
+                </CollapsibleContent>
+              )}
+            </Collapsible>
+          </li>
+        ))}
+      </ol>
+      {h.length > 10 && <DataTablePagination total={h.length} pagina={pag.pagina} tamano={pag.tamano} onPagina={pag.setPagina} onTamano={pag.setTamano} />}
     </div>
   );
 }

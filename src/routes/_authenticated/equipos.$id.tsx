@@ -73,6 +73,7 @@ function FichaEquipo() {
           <Dato k="Fecha de ingreso" v={fmtFecha(e.fecha_ingreso)} />
           <Dato k="Fin de garantía" v={fmtFecha(e.garantia_fin)} />
           <Dato k="Proveedor" v={e.proveedor ?? "—"} />
+          <Dato k="Valor de compra" v={e.valor_compra != null ? `$${Number(e.valor_compra).toLocaleString("es-CO")}` : "—"} />
           <Dato k="Código interno" v={e.codigo_interno ? "Sí" : "No"} />
           <Dato k="Activo fijo" v={e.activo_fijo ?? "—"} />
           <Dato k="Año de compra" v={e.anio_compra ?? "—"} />
@@ -136,28 +137,35 @@ type Eq = {
   proveedor: string | null; garantia_fin: string | null; observaciones: string | null;
   activo_fijo: string | null; nombre_equipo: string | null; sistema_operativo: string | null;
   factura_numero: string | null; anio_compra: number | null; novedad: string | null; fecha_ingreso: string | null;
+  valor_compra: number | null; proveedor_id: string | null;
 };
 
 function EditarEquipo({ e }: { e: Eq }) {
   const qc = useQueryClient();
   const cat = useCatalogos();
   const [open, setOpen] = useState(false);
+  const provs = useQuery({ queryKey: ["proveedores_lista"], enabled: open, queryFn: async () => (await supabase.from("proveedores").select("id, nombre").order("nombre")).data ?? [] });
   const [f, setF] = useState({
     modelo: e.modelo ?? "", marca_id: e.marca_id ?? "", sede_id: e.sede_id ?? "", tipo_id: e.tipo_id ?? "",
-    proveedor: e.proveedor ?? "", garantia_fin: e.garantia_fin ?? "", observaciones: e.observaciones ?? "",
+    proveedor_id: e.proveedor_id ?? "", garantia_fin: e.garantia_fin ?? "", observaciones: e.observaciones ?? "",
     activo_fijo: e.activo_fijo ?? "", nombre_equipo: e.nombre_equipo ?? "", sistema_operativo: e.sistema_operativo ?? "",
     factura_numero: e.factura_numero ?? "", anio_compra: e.anio_compra ? String(e.anio_compra) : "", novedad: e.novedad ?? "",
-    fecha_ingreso: e.fecha_ingreso ?? "",
+    fecha_ingreso: e.fecha_ingreso ?? "", valor_compra: e.valor_compra != null ? String(e.valor_compra) : "",
   });
   async function guardar() {
     const anio = f.anio_compra.trim() ? parseInt(f.anio_compra.trim(), 10) : null;
     if (anio !== null && (isNaN(anio) || anio < 1990 || anio > 2100)) return toast.error("Año de compra inválido");
+    const valor = f.valor_compra.trim() ? Number(f.valor_compra) : null;
+    if (valor !== null && (!isFinite(valor) || valor < 0)) return toast.error("Valor de compra inválido");
+    const provNombre = f.proveedor_id ? provs.data?.find((p) => p.id === f.proveedor_id)?.nombre ?? e.proveedor : e.proveedor_id ? null : e.proveedor;
     const { error } = await supabase.from("equipos").update({
       modelo: f.modelo || null, marca_id: f.marca_id || null, sede_id: f.sede_id || null,
-      proveedor: f.proveedor || null, garantia_fin: f.garantia_fin || null, observaciones: f.observaciones || null,
+      proveedor_id: f.proveedor_id || null, proveedor: provNombre, valor_compra: valor,
+      garantia_fin: f.garantia_fin || null, observaciones: f.observaciones || null,
       activo_fijo: f.activo_fijo.trim() || null, nombre_equipo: f.nombre_equipo.trim() || null,
       sistema_operativo: f.sistema_operativo.trim() || null, factura_numero: f.factura_numero.trim() || null,
       anio_compra: anio, novedad: f.novedad.trim() || null, ...(f.fecha_ingreso ? { fecha_ingreso: f.fecha_ingreso } : {}),
+      ...(f.tipo_id ? { tipo_id: f.tipo_id } : {}),
     }).eq("id", e.id);
     if (error) return toast.error(error.code === "23505" ? "Ese activo fijo ya existe en otro equipo." : errMsg(error));
     toast.success("Equipo actualizado"); setOpen(false);
@@ -177,7 +185,8 @@ function EditarEquipo({ e }: { e: Eq }) {
           <div className="space-y-1"><Label>Nombre de equipo</Label><Input value={f.nombre_equipo} onChange={(x) => setF({ ...f, nombre_equipo: x.target.value })} /></div>
           <div className="space-y-1"><Label>Sistema operativo</Label><Input value={f.sistema_operativo} onChange={(x) => setF({ ...f, sistema_operativo: x.target.value })} /></div>
           <div className="space-y-1"><Label>Sede</Label><select className={s} value={f.sede_id} onChange={(x) => setF({ ...f, sede_id: x.target.value })}><option value="">—</option>{cat.byTipo("sede").map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select></div>
-          <div className="space-y-1"><Label>Proveedor</Label><Input value={f.proveedor} onChange={(x) => setF({ ...f, proveedor: x.target.value })} /></div>
+          <div className="space-y-1"><Label>Proveedor</Label><select className={s} value={f.proveedor_id} onChange={(x) => setF({ ...f, proveedor_id: x.target.value })}><option value="">{e.proveedor && !e.proveedor_id ? `${e.proveedor} (texto anterior)` : "—"}</option>{(provs.data ?? []).map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}</select></div>
+          <div className="space-y-1"><Label>Valor de compra (COP)</Label><Input type="number" min={0} value={f.valor_compra} onChange={(x) => setF({ ...f, valor_compra: x.target.value })} /></div>
           <div className="space-y-1"><Label>Número de factura</Label><Input value={f.factura_numero} onChange={(x) => setF({ ...f, factura_numero: x.target.value })} /></div>
           <div className="space-y-1"><Label>Año de compra</Label><Input inputMode="numeric" value={f.anio_compra} onChange={(x) => setF({ ...f, anio_compra: x.target.value })} /></div>
           <div className="space-y-1"><Label>Fecha de ingreso</Label><Input type="date" value={f.fecha_ingreso} onChange={(x) => setF({ ...f, fecha_ingreso: x.target.value })} /></div>

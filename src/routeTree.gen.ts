@@ -19,8 +19,10 @@ import { Route as AuthenticatedAjustesRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedCargaMasivaRouteImport } from './routes/_authenticated/carga-masiva'
 import { Route as AuthenticatedCatalogosRouteImport } from './routes/_authenticated/catalogos'
+import { Route as AuthenticatedEstadisticasRouteImport } from './routes/_authenticated/estadisticas'
 import { Route as AuthenticatedMiPortalRouteImport } from './routes/_authenticated/mi-portal'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
+import { Route as AuthenticatedProveedoresRouteImport } from './routes/_authenticated/proveedores'
 import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as FirmarTokenRouteImport } from './routes/firmar.$token'
@@ -84,6 +86,12 @@ const AuthenticatedCatalogosRoute = AuthenticatedCatalogosRouteImport.update({
   path: '/catalogos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEstadisticasRoute =
+  AuthenticatedEstadisticasRouteImport.update({
+    id: '/estadisticas',
+    path: '/estadisticas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMiPortalRoute = AuthenticatedMiPortalRouteImport.update({
   id: '/mi-portal',
   path: '/mi-portal',
@@ -94,6 +102,12 @@ const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   path: '/panel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProveedoresRoute =
+  AuthenticatedProveedoresRouteImport.update({
+    id: '/proveedores',
+    path: '/proveedores',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedReportesRoute = AuthenticatedReportesRouteImport.update({
   id: '/reportes',
   path: '/reportes',
@@ -163,8 +177,10 @@ export interface FileRoutesByFullPath {
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/carga-masiva': typeof AuthenticatedCargaMasivaRoute
   '/catalogos': typeof AuthenticatedCatalogosRoute
+  '/estadisticas': typeof AuthenticatedEstadisticasRoute
   '/mi-portal': typeof AuthenticatedMiPortalRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/proveedores': typeof AuthenticatedProveedoresRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
@@ -187,8 +203,10 @@ export interface FileRoutesByTo {
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/carga-masiva': typeof AuthenticatedCargaMasivaRoute
   '/catalogos': typeof AuthenticatedCatalogosRoute
+  '/estadisticas': typeof AuthenticatedEstadisticasRoute
   '/mi-portal': typeof AuthenticatedMiPortalRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/proveedores': typeof AuthenticatedProveedoresRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
@@ -213,8 +231,10 @@ export interface FileRoutesById {
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/carga-masiva': typeof AuthenticatedCargaMasivaRoute
   '/_authenticated/catalogos': typeof AuthenticatedCatalogosRoute
+  '/_authenticated/estadisticas': typeof AuthenticatedEstadisticasRoute
   '/_authenticated/mi-portal': typeof AuthenticatedMiPortalRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
+  '/_authenticated/proveedores': typeof AuthenticatedProveedoresRoute
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
@@ -239,8 +259,10 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/carga-masiva'
     | '/catalogos'
+    | '/estadisticas'
     | '/mi-portal'
     | '/panel'
+    | '/proveedores'
     | '/reportes'
     | '/usuarios'
     | '/firmar/$token'
@@ -263,8 +285,10 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/carga-masiva'
     | '/catalogos'
+    | '/estadisticas'
     | '/mi-portal'
     | '/panel'
+    | '/proveedores'
     | '/reportes'
     | '/usuarios'
     | '/firmar/$token'
@@ -288,8 +312,10 @@ export interface FileRouteTypes {
     | '/_authenticated/auditoria'
     | '/_authenticated/carga-masiva'
     | '/_authenticated/catalogos'
+    | '/_authenticated/estadisticas'
     | '/_authenticated/mi-portal'
     | '/_authenticated/panel'
+    | '/_authenticated/proveedores'
     | '/_authenticated/reportes'
     | '/_authenticated/usuarios'
     | '/firmar/$token'
@@ -386,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCatalogosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/estadisticas': {
+      id: '/_authenticated/estadisticas'
+      path: '/estadisticas'
+      fullPath: '/estadisticas'
+      preLoaderRoute: typeof AuthenticatedEstadisticasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/mi-portal': {
       id: '/_authenticated/mi-portal'
       path: '/mi-portal'
@@ -398,6 +431,13 @@ declare module '@tanstack/react-router' {
       path: '/panel'
       fullPath: '/panel'
       preLoaderRoute: typeof AuthenticatedPanelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/proveedores': {
+      id: '/_authenticated/proveedores'
+      path: '/proveedores'
+      fullPath: '/proveedores'
+      preLoaderRoute: typeof AuthenticatedProveedoresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/reportes': {
@@ -485,8 +525,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
   AuthenticatedCargaMasivaRoute: typeof AuthenticatedCargaMasivaRoute
   AuthenticatedCatalogosRoute: typeof AuthenticatedCatalogosRoute
+  AuthenticatedEstadisticasRoute: typeof AuthenticatedEstadisticasRoute
   AuthenticatedMiPortalRoute: typeof AuthenticatedMiPortalRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
+  AuthenticatedProveedoresRoute: typeof AuthenticatedProveedoresRoute
   AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
   AuthenticatedActasIdRoute: typeof AuthenticatedActasIdRoute
@@ -503,8 +545,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
   AuthenticatedCargaMasivaRoute: AuthenticatedCargaMasivaRoute,
   AuthenticatedCatalogosRoute: AuthenticatedCatalogosRoute,
+  AuthenticatedEstadisticasRoute: AuthenticatedEstadisticasRoute,
   AuthenticatedMiPortalRoute: AuthenticatedMiPortalRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
+  AuthenticatedProveedoresRoute: AuthenticatedProveedoresRoute,
   AuthenticatedReportesRoute: AuthenticatedReportesRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
   AuthenticatedActasIdRoute: AuthenticatedActasIdRoute,

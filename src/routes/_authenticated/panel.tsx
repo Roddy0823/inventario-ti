@@ -5,6 +5,8 @@ import { useMe } from "@/lib/me";
 import { PageHeader, EstadoActa } from "@/components/Estado";
 import { ESTADO_EQUIPO, TIPO_ACTA, fmtFecha } from "@/lib/constantes";
 import { Button } from "@/components/ui/button";
+import { useWebMCP } from "use-webmcp-tool";
+import { runWebMCPTool } from "@/lib/webmcp-telemetry";
 
 export const Route = createFileRoute("/_authenticated/panel")({
   head: () => ({ meta: [{ title: "Panel — Finesa" }, { name: "description", content: "Resumen del inventario y actas." }] }),
@@ -27,6 +29,19 @@ function Panel() {
       for (const e of (eq.data ?? []) as { estado: string; total: number }[]) { conteo[e.estado] = Number(e.total); total += Number(e.total); }
       return { conteo, total, pendientes: pend.count ?? 0, ultimas: ult.data ?? [] };
     },
+  });
+
+  useWebMCP({
+    name: "ver_resumen_panel",
+    description: "Lee el resumen que muestra el panel: equipos por estado y actas pendientes de firma.",
+    enabled: !!stats.data,
+    annotations: { readOnlyHint: true },
+    execute: () => runWebMCPTool("ver_resumen_panel", () => {
+      const d = stats.data;
+      if (!d) return "Cargando…";
+      const partes = Object.entries(d.conteo).map(([k, n]) => `${k}: ${n}`).join(", ");
+      return `Total equipos: ${d.total} (${partes}). Actas pendientes: ${d.pendientes}.`;
+    }),
   });
 
   if (me?.isEmpleado) return <Navigate to="/mi-portal" replace />;

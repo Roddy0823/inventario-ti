@@ -159,7 +159,7 @@ function DetalleProveedor({ id, onClose, onEditar }: { id: string | null; onClos
   async function precio(v: Vin, campo: "precio_referencia" | "ultimo_precio", valor: string) {
     const num = valor ? Number(valor) : null;
     if (num === v[campo] || (num !== null && (!Number.isFinite(num) || num < 0))) return;
-    const { error } = await supabase.from("articulo_proveedores").update({ [campo]: num }).eq("id", v.id);
+    const { error } = await supabase.from("articulo_proveedores").update(campo === "precio_referencia" ? { precio_referencia: num } : { ultimo_precio: num }).eq("id", v.id);
     if (error) toast.error(errMsg(error)); else refrescar();
   }
   async function quitar(vid: string) {

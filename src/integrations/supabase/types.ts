@@ -958,6 +958,10 @@ export type Database = {
         Args: { p_equipo: string; p_motivo: string; p_serie: string }
         Returns: undefined
       }
+      estadisticas_avanzadas: {
+        Args: { p_sede?: string; p_tipo?: string }
+        Returns: Json
+      }
       estadisticas_inventario: {
         Args: { p_sede?: string; p_tipo?: string }
         Returns: Json

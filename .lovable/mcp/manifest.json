@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "sdk_version": "3.1.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://gnvtjdlaubhgxeqlovtk.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "inventario-ti",
+      "version": "0.1.0",
+      "title": "Inventario TI"
+    },
+    "tools": [
+      {
+        "name": "resumen_inventario",
+        "title": "Resumen del inventario",
+        "description": "Cuenta los equipos del inventario por estado (disponible, asignado, en reparación, de baja).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "buscar_equipos",
+        "title": "Buscar equipos",
+        "description": "Busca equipos visibles para el usuario por serie, modelo, activo fijo o nombre, con filtro opcional de estado.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "texto": {
+              "type": "string",
+              "maxLength": 100,
+              "description": "Texto a buscar en serie, modelo, activo fijo o nombre de equipo."
+            },
+            "estado": {
+              "type": "string",
+              "enum": [
+                "disponible",
+                "asignado",
+                "en_reparacion",
+                "dado_de_baja"
+              ],
+              "description": "Estado del equipo."
+            },
+            "limite": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Máximo de resultados (por defecto 25)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "listar_actas",
+        "title": "Listar actas",
+        "description": "Lista las actas de entrega o devolución visibles para el usuario, más recientes primero.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "estado": {
+              "type": "string",
+              "enum": [
+                "pendiente",
+                "firmada",
+                "anulada"
+              ],
+              "description": "Estado del acta."
+            },
+            "limite": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Máximo de resultados (por defecto 25)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

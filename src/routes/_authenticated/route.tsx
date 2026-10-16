@@ -1,4 +1,5 @@
-import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, redirect, useNavigate, useRouterState } from "@tanstack/react-router";
+import { CampanaAlertas } from "@/components/StockAlertas";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,7 @@ import { useMe } from "@/lib/me";
 import type { Permiso } from "@/lib/constantes";
 import { Button } from "@/components/ui/button";
 import {
-  LayoutDashboard, Laptop, Users, FileSignature, FolderOpen, Tags, UserCog, FileBarChart, Upload, LogOut, Menu, X, Inbox, Settings,
+  LayoutDashboard, Laptop, Users, FileSignature, FolderOpen, Tags, UserCog, FileBarChart, Upload, LogOut, Menu, X, Inbox, Settings, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +28,7 @@ function Shell() {
   const qc = useQueryClient();
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
+  const cargando = useRouterState({ select: (s) => s.status === "pending" });
 
   async function salir() {
     await supabase.rpc("log_evento", { p_accion: "LOGOUT", p_detalle: "Cierre de sesión" });
@@ -67,6 +69,12 @@ function Shell() {
 
   return (
     <div className="flex min-h-screen">
+      {cargando && (
+        <>
+          <div className="fixed inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-primary/20"><div className="h-full w-1/3 animate-[carga_1.2s_ease-in-out_infinite] bg-primary" /></div>
+          <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground shadow-md"><Loader2 className="h-3.5 w-3.5 animate-spin" />Cargando datos...</div>
+        </>
+      )}
       <aside className={cn(
         "fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-sidebar text-sidebar-foreground transition-transform lg:static lg:translate-x-0",
         open ? "translate-x-0" : "-translate-x-full",
@@ -76,6 +84,7 @@ function Shell() {
             <div className="font-display text-lg font-extrabold tracking-tight text-sidebar-accent-foreground">FINESA</div>
             <div className="text-[10px] uppercase tracking-[0.2em] text-sidebar-primary">Inventario y actas</div>
           </div>
+          {me.isStaff && <CampanaAlertas />}
           <button className="lg:hidden" onClick={() => setOpen(false)} aria-label="Cerrar menú"><X className="h-5 w-5" /></button>
         </div>
         <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">

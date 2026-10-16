@@ -7,3 +7,4 @@
 - [x] Fase 4: repositorio, reportes CSV, pantalla de auditoría
 - [x] Instrucción SQL para crear el administrador
 - [ ] Prueba completa con sesión iniciada — bloqueado: requiere que el usuario cree el primer administrador en Supabase
+- [x] Paginación, carga fluida, alertas de stock y proveedores

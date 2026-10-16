@@ -21,7 +21,7 @@ export type StockBajo = { tipo_id: string; tipo: string; disponibles: number; st
 export function useStockBajo() {
   const { data: me } = useMe();
   return useQuery({
-    queryKey: ["stock_bajo"],
+    queryKey: ["equipos", "stock_bajo"],
     enabled: !!me?.isStaff,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("stock_bajo");
@@ -115,7 +115,7 @@ function ConfigAlertas({ open, onClose, onProveedores }: { open: boolean; onClos
     queryKey: ["alertas_config"], enabled: open,
     queryFn: async () => (await supabase.from("alertas_stock_config").select("*").order("created_at")).data ?? [],
   });
-  const refrescar = () => { qc.invalidateQueries({ queryKey: ["alertas_config"] }); qc.invalidateQueries({ queryKey: ["stock_bajo"] }); };
+  const refrescar = () => { qc.invalidateQueries({ queryKey: ["alertas_config"] }); qc.invalidateQueries({ queryKey: ["equipos", "stock_bajo"] }); };
   async function agregar() {
     const min = Number(nuevo.min);
     if (!nuevo.tipo_id || !Number.isInteger(min) || min < 0) return toast.error("Seleccione el artículo y un mínimo válido");

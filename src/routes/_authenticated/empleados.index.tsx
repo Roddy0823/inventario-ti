@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { DataTablePagination, FilasSkeleton, usePaginacion } from "@/components/DataTablePagination";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
 import { useCatalogos } from "@/lib/catalogos";
@@ -20,23 +21,29 @@ export const Route = createFileRoute("/_authenticated/empleados/")({
 function Empleados() {
   const { data: me } = useMe();
   const cat = useCatalogos();
+  const [t, setT] = useState("");
+  const [texto, setTexto] = useState("");
+  useEffect(() => { const h = setTimeout(() => setTexto(t.replace(/[%,()*\\]/g, " ").trim()), 300); return () => clearTimeout(h); }, [t]);
+  const [estado, setEstado] = useState("activos");
+  const pag = usePaginacion({ texto, estado });
   const q = useQuery({
-    queryKey: ["empleados"],
+    queryKey: ["empleados", "pagina", texto, estado, pag.desde, pag.tamano],
+    placeholderData: keepPreviousData,
     queryFn: async () => {
-      const { data, error } = await supabase.from("empleados").select("*").order("nombre");
+      let s = supabase.from("empleados").select("*", { count: "exact" });
+      if (estado !== "todos") s = s.eq("activo", estado === "activos");
+      if (texto) s = s.or(`nombre.ilike.%${texto}%,identificacion.ilike.%${texto}%,email.ilike.%${texto}%`);
+      const { data, count, error } = await s.order("nombre").order("id").range(pag.desde, pag.hasta);
       if (error) throw error;
-      return data;
+      return { filas: data ?? [], total: count ?? 0 };
     },
   });
-  const [t, setT] = useState("");
-  const [estado, setEstado] = useState("activos");
-  const lista = useMemo(() => (q.data ?? []).filter((e) =>
-    (estado === "todos" || (estado === "activos" ? e.activo : !e.activo)) &&
-    (!t || [e.nombre, e.identificacion, e.email ?? ""].some((x) => x.toLowerCase().includes(t.toLowerCase())))), [q.data, t, estado]);
+  const lista = q.data?.filas ?? [];
+  const total = q.data?.total ?? 0;
 
   return (
     <div>
-      <PageHeader title="Empleados" desc={`${lista.length} empleado(s)`}>
+      <PageHeader title="Empleados" desc={`${total.toLocaleString("es-CO")} empleado(s)`}>
         {me?.can("empleados_editar") && <FormEmpleado />}
       </PageHeader>
       <div className="mb-4 flex flex-wrap gap-2">
@@ -51,6 +58,7 @@ function Empleados() {
             <tr><th className="px-4 py-2">Nombre</th><th className="px-4 py-2">Identificación</th><th className="px-4 py-2">Cargo</th><th className="px-4 py-2">Área</th><th className="px-4 py-2">Sede</th><th className="px-4 py-2">Portal</th></tr>
           </thead>
           <tbody className="divide-y divide-border">
+            {q.isLoading && <FilasSkeleton columnas={6} />}
             {lista.map((e) => (
               <tr key={e.id} className="hover:bg-muted/50">
                 <td className="px-4 py-2.5"><Link to="/empleados/$id" params={{ id: e.id }} className="font-medium text-primary hover:underline">{e.nombre}</Link>{!e.activo && <span className="ml-2 text-xs text-destructive">Inactivo</span>}</td>
@@ -61,9 +69,11 @@ function Empleados() {
                 <td className="px-4 py-2.5 text-xs">{e.user_id ? "Habilitado" : "—"}</td>
               </tr>
             ))}
+            {!q.isLoading && !lista.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No hay empleados que coincidan.</td></tr>}
           </tbody>
         </table>
       </div>
+      <DataTablePagination total={total} pagina={pag.pagina} tamano={pag.tamano} onPagina={pag.setPagina} onTamano={pag.setTamano} />
     </div>
   );
 }

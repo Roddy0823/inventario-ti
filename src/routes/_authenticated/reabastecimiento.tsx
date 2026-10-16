@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCatalogos } from "@/lib/catalogos";
 import { fmtFecha } from "@/lib/constantes";
 import { ESTADOS_PEDIDO, cop, pedidoAtrasado } from "@/lib/proveedores";
-import { reportePdf } from "@/lib/reportePdf";
 import { PageHeader } from "@/components/Estado";
 import { useStockBajo } from "@/components/StockAlertas";
 import { DetallePedido, EstadoPedido, NuevoPedido } from "@/components/Pedidos";
@@ -13,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DataTablePagination, FilasSkeleton, usePaginacion } from "@/components/DataTablePagination";
-import { AlertTriangle, Download, FileText, Plus, ShoppingCart } from "lucide-react";
+import { AlertTriangle, Plus, ShoppingCart } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/reabastecimiento")({
   head: () => ({ meta: [{ title: "Reabastecimiento — Finesa" }, { name: "description", content: "Pedidos de compra y reabastecimiento del inventario." }] }),
@@ -64,36 +63,10 @@ function Reabastecimiento() {
 
   const total = (f: Fila) => f.lineas.reduce((s, l) => s + l.cantidad * (Number(l.precio_estimado) || 0), 0);
   const resumen = (f: Fila) => f.lineas.map((l) => `${cat.nombre(l.tipo_id)} ${l.recibida}/${l.cantidad}`).join(", ");
-  async function todas() {
-    const { data } = await filtrar(supabase.from("pedidos_compra").select(SELECT)).order("created_at", { ascending: false }).limit(2000);
-    return (data ?? []) as unknown as Fila[];
-  }
-  async function excel() {
-    const filas = await todas();
-    const XLSX = await import("xlsx");
-    const ws = XLSX.utils.json_to_sheet(filas.flatMap((f) => f.lineas.map((l) => ({
-      Pedido: f.numero, Proveedor: f.proveedor?.nombre ?? "", Estado: pedidoAtrasado(f) ? "Atrasado" : ESTADOS_PEDIDO[f.estado], Creado: fmtFecha(f.created_at), "Entrega esperada": f.fecha_esperada ?? "",
-      Artículo: cat.nombre(l.tipo_id), Cantidad: l.cantidad, Recibida: l.recibida, "Precio estimado": l.precio_estimado ?? "",
-    }))));
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Pedidos"); XLSX.writeFile(wb, "pedidos_compra.xlsx");
-  }
-  async function pdf() {
-    const filas = await todas();
-    reportePdf({
-      titulo: "Pedidos de compra", subtitulo: `Generado ${fmtFecha(new Date().toISOString(), true)}`,
-      resumen: [`${filas.length} pedido(s)`, `Total estimado: ${cop(filas.reduce((s, f) => s + total(f), 0))}`],
-      columnas: ["#", "Proveedor", "Estado", "Creado", "Entrega", "Artículos", "Total"],
-      filas: filas.map((f) => [f.numero, f.proveedor?.nombre, pedidoAtrasado(f) ? "Atrasado" : ESTADOS_PEDIDO[f.estado], fmtFecha(f.created_at), f.fecha_esperada ? fmtFecha(f.fecha_esperada) : "—", resumen(f), cop(total(f))]),
-      archivo: "pedidos_compra.pdf",
-    });
-  }
-
   const bajos = stock.data ?? [];
   return (
     <div>
       <PageHeader title="Reabastecimiento" desc="Pedidos de compra a proveedores y recepción de equipos.">
-        <Button variant="outline" onClick={excel}><Download className="mr-1 h-4 w-4" />Excel</Button>
-        <Button variant="outline" onClick={pdf}><FileText className="mr-1 h-4 w-4" />PDF</Button>
         <Button onClick={() => setNuevo({})}><Plus className="mr-1 h-4 w-4" />Nuevo pedido</Button>
       </PageHeader>
 

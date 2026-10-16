@@ -7,6 +7,7 @@ import { useCatalogos } from "@/lib/catalogos";
 import { errMsg, fmtFecha } from "@/lib/constantes";
 import { ETIQUETAS_PROVEEDOR, cop, telefonoPrincipal, type Prov } from "@/lib/proveedores";
 import { ContactoProveedor } from "@/components/ContactoProveedor";
+import { PedidosProveedor } from "@/components/Pedidos";
 import { PageHeader } from "@/components/Estado";
 import { FormProveedor } from "@/components/ProveedorForm";
 import { RecibirStock } from "@/components/RecibirStock";
@@ -195,6 +196,7 @@ function DetalleProveedor({ id, onClose, onEditar }: { id: string | null; onClos
               <Kpi k="Equipos suministrados" v={Number(r?.equipos ?? 0)} /><Kpi k="En garantía" v={Number(r?.en_garantia ?? 0)} />
               <Kpi k="Valor" v={cop(Number(r?.valor ?? 0))} /><Kpi k="Reparaciones" v={`${Number(r?.reparaciones ?? 0)}${r?.dias_promedio != null ? ` · ${r.dias_promedio} d prom.` : ""}`} />
             </div>
+            <PedidosProveedor proveedorId={d.p.id} />
 
             <section>
               <h3 className="mb-2 font-medium">Artículos que vende</h3>

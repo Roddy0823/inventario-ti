@@ -65,12 +65,7 @@ function Estadisticas() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(s.top_proveedores.map((t) => ({ Proveedor: t.nombre, Equipos: t.cantidad, Valor: t.valor }))), "Proveedores");
     XLSX.writeFile(wb, `estadisticas-inventario-${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
-  async function pdf() {
-    if (!s) return;
-    const { jsPDF } = await import("jspdf").catch(() => ({ jsPDF: null as never }));
-    if (!jsPDF) return window.print();
-    window.print();
-  }
+  function pdf() { window.print(); }
 
   return (
     <div className="print:p-0">

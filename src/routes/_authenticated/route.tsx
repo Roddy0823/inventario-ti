@@ -7,7 +7,7 @@ import { useMe } from "@/lib/me";
 import type { Permiso } from "@/lib/constantes";
 import { Button } from "@/components/ui/button";
 import {
-  LayoutDashboard, Laptop, Users, FileSignature, FolderOpen, Tags, UserCog, FileBarChart, Upload, LogOut, Menu, X, Inbox, Settings, Loader2,
+  LayoutDashboard, Laptop, Users, FileSignature, FolderOpen, Tags, UserCog, FileBarChart, Upload, LogOut, Menu, X, Inbox, Settings, Loader2, Truck, BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +56,8 @@ function Shell() {
     : [
         { to: "/panel", label: "Panel", icon: LayoutDashboard, show: true },
         { to: "/equipos", label: "Inventario", icon: Laptop, show: true },
+        { to: "/proveedores", label: "Proveedores", icon: Truck, show: true },
+        { to: "/estadisticas", label: "Estadísticas", icon: BarChart3, show: true },
         { to: "/empleados", label: "Empleados", icon: Users, show: true },
         { to: "/actas/nueva", label: "Nueva acta", icon: FileSignature, show: can("actas_entrega") || can("actas_devolucion") },
         { to: "/actas", label: "Repositorio de actas", icon: FolderOpen, show: true },

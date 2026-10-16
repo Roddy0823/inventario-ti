@@ -139,6 +139,92 @@ export type Database = {
           },
         ]
       }
+      alertas_stock_config: {
+        Row: {
+          activa: boolean
+          created_at: string
+          id: string
+          owner_id: string | null
+          stock_minimo: number
+          tipo_id: string
+          updated_at: string
+        }
+        Insert: {
+          activa?: boolean
+          created_at?: string
+          id?: string
+          owner_id?: string | null
+          stock_minimo?: number
+          tipo_id: string
+          updated_at?: string
+        }
+        Update: {
+          activa?: boolean
+          created_at?: string
+          id?: string
+          owner_id?: string | null
+          stock_minimo?: number
+          tipo_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alertas_stock_config_tipo_id_fkey"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      articulo_proveedores: {
+        Row: {
+          created_at: string
+          es_principal: boolean
+          id: string
+          owner_id: string | null
+          precio_referencia: number | null
+          proveedor_id: string
+          tiempo_entrega_dias: number | null
+          tipo_id: string
+        }
+        Insert: {
+          created_at?: string
+          es_principal?: boolean
+          id?: string
+          owner_id?: string | null
+          precio_referencia?: number | null
+          proveedor_id: string
+          tiempo_entrega_dias?: number | null
+          tipo_id: string
+        }
+        Update: {
+          created_at?: string
+          es_principal?: boolean
+          id?: string
+          owner_id?: string | null
+          precio_referencia?: number | null
+          proveedor_id?: string
+          tiempo_entrega_dias?: number | null
+          tipo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articulo_proveedores_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "articulo_proveedores_tipo_id_fkey"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auditoria: {
         Row: {
           accion: string
@@ -462,6 +548,51 @@ export type Database = {
         }
         Relationships: []
       }
+      proveedores: {
+        Row: {
+          ciudad: string | null
+          contacto_nombre: string | null
+          created_at: string
+          email: string | null
+          id: string
+          nit: string | null
+          nombre: string
+          notas: string | null
+          owner_id: string | null
+          telefono: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          ciudad?: string | null
+          contacto_nombre?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nit?: string | null
+          nombre: string
+          notas?: string | null
+          owner_id?: string | null
+          telefono: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          ciudad?: string | null
+          contacto_nombre?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nit?: string | null
+          nombre?: string
+          notas?: string | null
+          owner_id?: string | null
+          telefono?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       tokens_firma: {
         Row: {
           acta_id: string
@@ -595,6 +726,15 @@ export type Database = {
         Returns: {
           estado: Database["public"]["Enums"]["equipo_estado"]
           total: number
+        }[]
+      }
+      stock_bajo: {
+        Args: never
+        Returns: {
+          disponibles: number
+          stock_minimo: number
+          tipo: string
+          tipo_id: string
         }[]
       }
     }

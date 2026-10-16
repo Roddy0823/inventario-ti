@@ -1,0 +1,15 @@
+DELETE FROM public.tokens_firma WHERE id IS NOT NULL;
+DELETE FROM public.acta_items WHERE id IS NOT NULL;
+DELETE FROM public.equipo_historial WHERE id IS NOT NULL;
+DELETE FROM public.reparaciones WHERE id IS NOT NULL;
+DELETE FROM public.actas WHERE id IS NOT NULL;
+DELETE FROM public.pedido_lineas WHERE id IS NOT NULL;
+DELETE FROM public.solicitudes_reabastecimiento WHERE id IS NOT NULL;
+DELETE FROM public.pedidos_compra WHERE id IS NOT NULL;
+DELETE FROM public.articulo_proveedores WHERE id IS NOT NULL;
+DELETE FROM public.alertas_stock_config WHERE id IS NOT NULL;
+DELETE FROM public.equipos WHERE id IS NOT NULL;
+DELETE FROM public.proveedores WHERE id IS NOT NULL;
+DELETE FROM auth.users WHERE id IN (SELECT user_id FROM public.user_roles WHERE role = 'empleado');
+DELETE FROM public.empleados WHERE id IS NOT NULL;
+INSERT INTO public.auditoria (tabla, accion, detalle) VALUES ('sistema', 'BORRADO_MASIVO', 'Se eliminaron empleados, equipos, actas, historial, proveedores y pedidos para nueva carga');

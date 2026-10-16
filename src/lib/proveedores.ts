@@ -9,13 +9,13 @@ export type Prov = {
 };
 
 export const cop = (n: number | null | undefined) => (n == null ? "—" : `$${Number(n).toLocaleString("es-CO")}`);
-export const telLink = (s: string) => `tel:${s.replace(/[^\d+]/g, "")}`;
-export const waNum = (s: string) => { const d = s.replace(/\D/g, ""); return d.length === 10 ? `57${d}` : d; };
-export const celular = (p: Pick<Prov, "whatsapp" | "telefono" | "asesor_telefono">) => p.whatsapp || p.telefono || p.asesor_telefono || "";
 export const telefonoPrincipal = (p: Pick<Prov, "whatsapp" | "telefono" | "asesor_telefono">) => p.asesor_telefono || p.telefono || p.whatsapp || "";
 
-export function mensajeReabastecer(asesor: string | null, articulo: string, cantidad: number) {
-  return `Hola${asesor ? ` ${asesor}` : ""}, te escribo desde el área de TI. Actualmente requerimos cotización y disponibilidad para reabastecer ${articulo} (Cantidad requerida: ${cantidad} unidades). Quedo atento.`;
-}
-export const waLink = (p: Prov, texto: string) => `https://wa.me/${waNum(celular(p))}?text=${encodeURIComponent(texto)}`;
-export const mailLink = (p: Prov, asunto: string, texto: string) => `mailto:${p.email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(texto)}`;
+export const ESTADOS_PEDIDO: Record<string, string> = {
+  borrador: "Borrador", pedido: "Pedido realizado", parcial: "Recibido parcial", recibido: "Recibido completo", cancelado: "Cancelado",
+};
+export const pedidoAtrasado = (p: { estado: string; fecha_esperada: string | null }) =>
+  (p.estado === "pedido" || p.estado === "parcial") && !!p.fecha_esperada && p.fecha_esperada < new Date().toISOString().slice(0, 10);
+export const sumarDias = (dias: number | null | undefined) => {
+  const d = new Date(); d.setDate(d.getDate() + (dias ?? 0)); return d.toISOString().slice(0, 10);
+};

@@ -146,7 +146,7 @@ export function ImportExcel({ isAdmin }: { isAdmin: boolean }) {
         <div className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-card p-4 text-sm">
           <span>{plan.resumen}</span>
           <Button disabled={!!prog} onClick={procesar}>{prog ?? "Procesar carga"}</Button>
-          {prog && <div className="mt-3 space-y-1"><Progress value={pct} /><div className="text-xs text-muted-foreground">{pct}%</div></div>}
+          {prog && <div className="w-full basis-full space-y-1"><Progress value={pct} /><div className="text-xs text-muted-foreground">{pct}%</div></div>}
         </div>
       )}
       {reporte.length > 0 && (

@@ -9,8 +9,11 @@ import { toast } from "sonner";
 import { ShieldCheck } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { ingresoEmpleado } from "@/lib/usuarios.functions";
+import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (s: Record<string, unknown>): { next?: string } =>
+    typeof s.next === "string" ? { next: s.next } : {},
   head: () => ({
     meta: [
       { title: "Ingresar — Finesa Inventario y Actas" },
@@ -32,6 +35,9 @@ function Login() {
   const [cedula, setCedula] = useState("");
   const [pin, setPin] = useState("");
   const ingresar = useServerFn(ingresoEmpleado);
+  const { next } = Route.useSearch();
+  const destino = next ? oauthReturnPath(next) : null;
+  const irDestino = () => { if (destino && destino !== "/") window.location.assign(destino); else nav({ to: "/panel", replace: true }); };
 
   async function submitEmpleado(e: React.FormEvent) {
     e.preventDefault();
@@ -42,7 +48,7 @@ function Login() {
       const { error } = await supabase.auth.setSession({ access_token: r.access_token, refresh_token: r.refresh_token });
       if (error) throw error;
       qc.removeQueries({ queryKey: ["me"] });
-      nav({ to: "/panel", replace: true });
+      irDestino();
     } catch {
       toast.error("No fue posible ingresar. Intente de nuevo.");
       setLoading(false);
@@ -51,9 +57,9 @@ function Login() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) nav({ to: "/panel", replace: true });
+      if (data.user) irDestino();
     });
-  }, [nav]);
+  }, [nav, destino]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +72,7 @@ function Login() {
     }
     await supabase.rpc("log_evento", { p_accion: "LOGIN", p_detalle: "Inicio de sesión" });
     qc.removeQueries({ queryKey: ["me"] });
-    nav({ to: "/panel", replace: true });
+    irDestino();
   }
 
   return (

@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as RecuperarRouteImport } from './routes/recuperar'
 import { Route as RestablecerRouteImport } from './routes/restablecer'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedAjustesRouteImport } from './routes/_authenticated/ajustes'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedCargaMasivaRouteImport } from './routes/_authenticated/carga-masiva'
@@ -22,6 +24,7 @@ import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as FirmarTokenRouteImport } from './routes/firmar.$token'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedActasIndexRouteImport } from './routes/_authenticated/actas.index'
 import { Route as AuthenticatedActasIdRouteImport } from './routes/_authenticated/actas.$id'
 import { Route as AuthenticatedActasNuevaRouteImport } from './routes/_authenticated/actas.nueva'
@@ -39,6 +42,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecuperarRoute = RecuperarRouteImport.update({
   id: '/recuperar',
   path: '/recuperar',
@@ -49,6 +57,12 @@ const RestablecerRoute = RestablecerRouteImport.update({
   path: '/restablecer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAjustesRoute = AuthenticatedAjustesRouteImport.update({
   id: '/ajustes',
   path: '/ajustes',
@@ -95,6 +109,11 @@ const FirmarTokenRoute = FirmarTokenRouteImport.update({
   path: '/firmar/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedActasIndexRoute = AuthenticatedActasIndexRouteImport.update({
   id: '/actas/',
   path: '/actas/',
@@ -136,8 +155,10 @@ const AuthenticatedEquiposIdRoute = AuthenticatedEquiposIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/mcp': typeof McpRoute
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/ajustes': typeof AuthenticatedAjustesRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/carga-masiva': typeof AuthenticatedCargaMasivaRoute
@@ -147,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/reportes': typeof AuthenticatedReportesRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/actas/$id': typeof AuthenticatedActasIdRoute
   '/actas/nueva': typeof AuthenticatedActasNuevaRoute
   '/empleados/$id': typeof AuthenticatedEmpleadosIdRoute
@@ -157,8 +179,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/mcp': typeof McpRoute
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/ajustes': typeof AuthenticatedAjustesRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/carga-masiva': typeof AuthenticatedCargaMasivaRoute
@@ -168,6 +192,7 @@ export interface FileRoutesByTo {
   '/reportes': typeof AuthenticatedReportesRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/actas/$id': typeof AuthenticatedActasIdRoute
   '/actas/nueva': typeof AuthenticatedActasNuevaRoute
   '/empleados/$id': typeof AuthenticatedEmpleadosIdRoute
@@ -180,8 +205,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/mcp': typeof McpRoute
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/ajustes': typeof AuthenticatedAjustesRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/carga-masiva': typeof AuthenticatedCargaMasivaRoute
@@ -191,6 +218,7 @@ export interface FileRoutesById {
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/actas/$id': typeof AuthenticatedActasIdRoute
   '/_authenticated/actas/nueva': typeof AuthenticatedActasNuevaRoute
   '/_authenticated/empleados/$id': typeof AuthenticatedEmpleadosIdRoute
@@ -203,8 +231,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/mcp'
     | '/recuperar'
     | '/restablecer'
+    | '/.well-known/oauth-protected-resource'
     | '/ajustes'
     | '/auditoria'
     | '/carga-masiva'
@@ -214,6 +244,7 @@ export interface FileRouteTypes {
     | '/reportes'
     | '/usuarios'
     | '/firmar/$token'
+    | '/.lovable/oauth/consent'
     | '/actas/$id'
     | '/actas/nueva'
     | '/empleados/$id'
@@ -224,8 +255,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/mcp'
     | '/recuperar'
     | '/restablecer'
+    | '/.well-known/oauth-protected-resource'
     | '/ajustes'
     | '/auditoria'
     | '/carga-masiva'
@@ -235,6 +268,7 @@ export interface FileRouteTypes {
     | '/reportes'
     | '/usuarios'
     | '/firmar/$token'
+    | '/.lovable/oauth/consent'
     | '/actas/$id'
     | '/actas/nueva'
     | '/empleados/$id'
@@ -246,8 +280,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/mcp'
     | '/recuperar'
     | '/restablecer'
+    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/ajustes'
     | '/_authenticated/auditoria'
     | '/_authenticated/carga-masiva'
@@ -257,6 +293,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reportes'
     | '/_authenticated/usuarios'
     | '/firmar/$token'
+    | '/.lovable/oauth/consent'
     | '/_authenticated/actas/$id'
     | '/_authenticated/actas/nueva'
     | '/_authenticated/empleados/$id'
@@ -269,9 +306,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  McpRoute: typeof McpRoute
   RecuperarRoute: typeof RecuperarRoute
   RestablecerRoute: typeof RestablecerRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   FirmarTokenRoute: typeof FirmarTokenRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -290,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recuperar': {
       id: '/recuperar'
       path: '/recuperar'
@@ -302,6 +349,13 @@ declare module '@tanstack/react-router' {
       path: '/restablecer'
       fullPath: '/restablecer'
       preLoaderRoute: typeof RestablecerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/ajustes': {
@@ -365,6 +419,13 @@ declare module '@tanstack/react-router' {
       path: '/firmar/$token'
       fullPath: '/firmar/$token'
       preLoaderRoute: typeof FirmarTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/actas/': {
@@ -461,9 +522,13 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  McpRoute: McpRoute,
   RecuperarRoute: RecuperarRoute,
   RestablecerRoute: RestablecerRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   FirmarTokenRoute: FirmarTokenRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -15,7 +15,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { toast } from "sonner";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DataTablePagination, usePaginacion } from "@/components/DataTablePagination";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Mail, MessageCircle, Phone, ShieldCheck, ShieldOff, Wrench } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ETIQUETA_SERVICIO, celular, telefonoPrincipal, telLink, waLink, type Prov } from "@/lib/proveedores";
 
 export const Route = createFileRoute("/_authenticated/equipos/$id")({
   head: () => ({ meta: [{ title: "Ficha del equipo — Finesa" }, { name: "description", content: "Datos e historial del equipo." }] }),
@@ -66,6 +68,7 @@ function FichaEquipo() {
         {me?.can("equipos_editar") && e.estado !== "de_baja" && !(e.estado === "en_reparacion" && !me?.isAdmin) && <CambiarEstado id={e.id} actual={e.estado} admin={!!me?.isAdmin} />}
         {me?.isAdmin && <CorregirSerie id={e.id} serie={e.serie} />}
       </PageHeader>
+      <GarantiaYReparacion e={e} />
       <div className="grid gap-6 lg:grid-cols-3">
         <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-md border border-border bg-card p-5 text-sm lg:col-span-1">
           <Dato k="Sede" v={cat.nombre(e.sede_id)} />
@@ -201,17 +204,48 @@ function EditarEquipo({ e }: { e: Eq }) {
   );
 }
 
+function GarantiaYReparacion({ e }: { e: { garantia_fin: string | null; proveedor_id: string | null; proveedor: string | null; estado: string; reparacion_proveedor_id: string | null; reparacion_inicio: string | null } }) {
+  const ids = [e.proveedor_id, e.reparacion_proveedor_id].filter(Boolean) as string[];
+  const q = useQuery({ queryKey: ["proveedor", "equipo", ...ids], enabled: ids.length > 0, queryFn: async () => ((await supabase.from("proveedores").select("*").in("id", ids)).data ?? []) as Prov[] });
+  const compra = q.data?.find((p) => p.id === e.proveedor_id);
+  const rep = q.data?.find((p) => p.id === e.reparacion_proveedor_id);
+  const hoy = new Date().toISOString().slice(0, 10);
+  const nombreProv = compra?.nombre ?? e.proveedor;
+  const mes = (d: string) => new Date(d + "T12:00:00").toLocaleDateString("es-CO", { month: "short", year: "numeric" });
+  return (
+    <div className="mb-4 space-y-3">
+      {e.garantia_fin && (
+        e.garantia_fin >= hoy
+          ? <Badge className="bg-success text-success-foreground hover:bg-success"><ShieldCheck className="mr-1 h-3.5 w-3.5" />En garantía{nombreProv ? ` con ${nombreProv}` : ""} hasta {mes(e.garantia_fin)}</Badge>
+          : <Badge variant="secondary"><ShieldOff className="mr-1 h-3.5 w-3.5" />Garantía vencida desde {mes(e.garantia_fin)}</Badge>
+      )}
+      {e.estado === "en_reparacion" && rep && (
+        <div className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm">
+          <div><Wrench className="mr-1 inline h-4 w-4" />En reparación con <b>{rep.nombre}</b>{e.reparacion_inicio ? ` desde ${fmtFecha(e.reparacion_inicio)}` : ""}{rep.contacto_nombre ? ` · Asesor: ${rep.contacto_nombre}` : ""}</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {telefonoPrincipal(rep) && <Button size="sm" variant="outline" asChild><a href={telLink(telefonoPrincipal(rep))}><Phone className="mr-1 h-3.5 w-3.5" />Llamar</a></Button>}
+            {celular(rep) && <Button size="sm" variant="outline" asChild><a href={waLink(rep, `Hola${rep.contacto_nombre ? ` ${rep.contacto_nombre}` : ""}, te escribo desde el área de TI de Finesa para consultar el estado de la reparación del equipo.`)} target="_blank" rel="noreferrer"><MessageCircle className="mr-1 h-3.5 w-3.5" />WhatsApp</a></Button>}
+            {rep.email && <Button size="sm" variant="outline" asChild><a href={`mailto:${rep.email}`}><Mail className="mr-1 h-3.5 w-3.5" />Correo</a></Button>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CambiarEstado({ id, actual, admin }: { id: string; actual: string; admin: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [estado, setEstado] = useState(actual === "en_reparacion" ? "de_baja" : "en_reparacion");
   const [motivo, setMotivo] = useState("");
+  const [prov, setProv] = useState("");
+  const servicio = useQuery({ queryKey: ["proveedores_lista", "servicio"], enabled: open, queryFn: async () => (await supabase.from("proveedores").select("id, nombre").eq("activo", true).contains("etiquetas", [ETIQUETA_SERVICIO]).order("nombre")).data ?? [] });
   async function guardar() {
     if (!motivo.trim()) return toast.error("El motivo es obligatorio");
-    const { error } = await supabase.rpc("cambiar_estado_equipo", { p_equipo: id, p_estado: estado as "disponible", p_motivo: motivo.trim() });
+    const { error } = await supabase.rpc("cambiar_estado_equipo", { p_equipo: id, p_estado: estado as "disponible", p_motivo: motivo.trim(), ...(estado === "en_reparacion" && prov ? { p_proveedor: prov } : {}) });
     if (error) return toast.error(errMsg(error));
-    toast.success("Estado actualizado"); setOpen(false); setMotivo("");
-    qc.invalidateQueries({ queryKey: ["equipo", id] }); qc.invalidateQueries({ queryKey: ["equipos"] });
+    toast.success("Estado actualizado"); setOpen(false); setMotivo(""); setProv("");
+    qc.invalidateQueries({ queryKey: ["equipo", id] }); qc.invalidateQueries({ queryKey: ["equipos"] }); qc.invalidateQueries({ queryKey: ["proveedor"] });
   }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -223,6 +257,15 @@ function CambiarEstado({ id, actual, admin }: { id: string; actual: string; admi
           {actual !== "en_reparacion" && <option value="en_reparacion">En reparación{actual === "asignado" ? " (sigue ligado al empleado)" : ""}</option>}
           {admin && <option value="de_baja">De baja (definitivo)</option>}
         </select>
+        {estado === "en_reparacion" && (
+          <div className="space-y-1"><Label>Proveedor de servicio técnico</Label>
+            <select className="h-9 w-full rounded-md border border-input bg-card px-3 text-sm" value={prov} onChange={(e) => setProv(e.target.value)}>
+              <option value="">— Interno / sin proveedor —</option>
+              {(servicio.data ?? []).map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+            </select>
+            {servicio.data && !servicio.data.length && <p className="text-xs text-muted-foreground">No hay proveedores con el tipo "Servicio Técnico / Reparaciones".</p>}
+          </div>
+        )}
         <div className="space-y-1"><Label>Motivo *</Label><Textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
         <DialogFooter><Button onClick={guardar} variant={estado === "de_baja" ? "destructive" : "default"}>Confirmar</Button></DialogFooter>
       </DialogContent>

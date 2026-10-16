@@ -97,6 +97,25 @@ function Reportes() {
     } catch (e) { toast.error((e as Error).message); } finally { setCargando(false); }
   }
 
+  async function proveedores(formato: "csv" | "pdf") {
+    setCargando(true);
+    try {
+      const { data, error } = await supabase.rpc("resumen_proveedores");
+      if (error) throw error;
+      if (!data?.length) return toast.info("No hay proveedores registrados");
+      const filas = data.map((r) => ({ proveedor: r.nombre, equipos: Number(r.equipos), en_garantia: Number(r.en_garantia), valor: Number(r.valor), reparaciones: Number(r.reparaciones), en_reparacion: Number(r.en_reparacion), dias_promedio_reparacion: r.dias_promedio ?? "" }));
+      if (formato === "csv") descargarCSV(`proveedores_${hoy}.csv`, filas);
+      else (await import("@/lib/reportePdf")).reportePdf({
+        titulo: "RESUMEN POR PROVEEDOR", subtitulo: `Generado el ${fmtFecha(hoy)}`,
+        resumen: [`Proveedores: ${filas.length}`, `Equipos suministrados: ${filas.reduce((a, f) => a + f.equipos, 0)}`, `En garantía: ${filas.reduce((a, f) => a + f.en_garantia, 0)}`],
+        columnas: ["Proveedor", "Equipos", "En garantía", "Valor", "Reparados", "En reparación", "Días prom. reparación"],
+        filas: filas.map((f) => [f.proveedor, String(f.equipos), String(f.en_garantia), `$${f.valor.toLocaleString("es-CO")}`, String(f.reparaciones), String(f.en_reparacion), String(f.dias_promedio_reparacion)]),
+        archivo: `proveedores_${hoy}.pdf`,
+      });
+      await supabase.rpc("log_evento", { p_accion: "EXPORTAR", p_detalle: `Resumen por proveedor (${formato.toUpperCase()})` });
+    } catch (e) { toast.error((e as Error).message); } finally { setCargando(false); }
+  }
+
   const s = "h-9 w-full rounded-md border border-input bg-card px-3 text-sm";
   return (
     <div>
@@ -117,6 +136,11 @@ function Reportes() {
             <div className="space-y-1"><Label>Hasta</Label><Input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} /></div>
           </div>
           <div className="flex gap-2"><Button disabled={cargando} onClick={() => actas("csv")}>Excel</Button><Button disabled={cargando} variant="outline" onClick={() => actas("pdf")}>PDF</Button></div>
+        </section>
+        <section className="space-y-4 rounded-md border border-border bg-card p-5">
+          <h2 className="font-bold">Resumen por proveedor</h2>
+          <p className="text-sm text-muted-foreground">Equipos suministrados, en garantía, valor y reparaciones de cada proveedor.</p>
+          <div className="flex gap-2"><Button disabled={cargando} onClick={() => proveedores("csv")}>Excel</Button><Button disabled={cargando} variant="outline" onClick={() => proveedores("pdf")}>PDF</Button></div>
         </section>
       </div>
     </div>

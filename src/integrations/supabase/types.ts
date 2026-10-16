@@ -187,6 +187,8 @@ export type Database = {
           proveedor_id: string
           tiempo_entrega_dias: number | null
           tipo_id: string
+          ultima_compra: string | null
+          ultimo_precio: number | null
         }
         Insert: {
           created_at?: string
@@ -197,6 +199,8 @@ export type Database = {
           proveedor_id: string
           tiempo_entrega_dias?: number | null
           tipo_id: string
+          ultima_compra?: string | null
+          ultimo_precio?: number | null
         }
         Update: {
           created_at?: string
@@ -207,6 +211,8 @@ export type Database = {
           proveedor_id?: string
           tiempo_entrega_dias?: number | null
           tipo_id?: string
+          ultima_compra?: string | null
+          ultimo_precio?: number | null
         }
         Relationships: [
           {
@@ -430,6 +436,8 @@ export type Database = {
           owner_id: string | null
           proveedor: string | null
           proveedor_id: string | null
+          reparacion_inicio: string | null
+          reparacion_proveedor_id: string | null
           sede_id: string | null
           serie: string
           sistema_operativo: string | null
@@ -458,6 +466,8 @@ export type Database = {
           owner_id?: string | null
           proveedor?: string | null
           proveedor_id?: string | null
+          reparacion_inicio?: string | null
+          reparacion_proveedor_id?: string | null
           sede_id?: string | null
           serie: string
           sistema_operativo?: string | null
@@ -486,6 +496,8 @@ export type Database = {
           owner_id?: string | null
           proveedor?: string | null
           proveedor_id?: string | null
+          reparacion_inicio?: string | null
+          reparacion_proveedor_id?: string | null
           sede_id?: string | null
           serie?: string
           sistema_operativo?: string | null
@@ -511,6 +523,13 @@ export type Database = {
           {
             foreignKeyName: "equipos_proveedor_id_fkey"
             columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_reparacion_proveedor_id_fkey"
+            columns: ["reparacion_proveedor_id"]
             isOneToOne: false
             referencedRelation: "proveedores"
             referencedColumns: ["id"]
@@ -563,48 +582,171 @@ export type Database = {
       }
       proveedores: {
         Row: {
+          activo: boolean
+          asesor_telefono: string | null
           ciudad: string | null
           contacto_nombre: string | null
           created_at: string
+          dias_entrega: number | null
+          direccion: string | null
           email: string | null
+          etiquetas: string[]
+          forma_pago: string | null
           id: string
           nit: string | null
           nombre: string
           notas: string | null
           owner_id: string | null
-          telefono: string
+          sitio_web: string | null
+          telefono: string | null
           updated_at: string
           whatsapp: string | null
         }
         Insert: {
+          activo?: boolean
+          asesor_telefono?: string | null
           ciudad?: string | null
           contacto_nombre?: string | null
           created_at?: string
+          dias_entrega?: number | null
+          direccion?: string | null
           email?: string | null
+          etiquetas?: string[]
+          forma_pago?: string | null
           id?: string
           nit?: string | null
           nombre: string
           notas?: string | null
           owner_id?: string | null
-          telefono: string
+          sitio_web?: string | null
+          telefono?: string | null
           updated_at?: string
           whatsapp?: string | null
         }
         Update: {
+          activo?: boolean
+          asesor_telefono?: string | null
           ciudad?: string | null
           contacto_nombre?: string | null
           created_at?: string
+          dias_entrega?: number | null
+          direccion?: string | null
           email?: string | null
+          etiquetas?: string[]
+          forma_pago?: string | null
           id?: string
           nit?: string | null
           nombre?: string
           notas?: string | null
           owner_id?: string | null
-          telefono?: string
+          sitio_web?: string | null
+          telefono?: string | null
           updated_at?: string
           whatsapp?: string | null
         }
         Relationships: []
+      }
+      reparaciones: {
+        Row: {
+          created_at: string
+          equipo_id: string
+          fin: string | null
+          id: string
+          inicio: string
+          owner_id: string | null
+          proveedor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          equipo_id: string
+          fin?: string | null
+          id?: string
+          inicio?: string
+          owner_id?: string | null
+          proveedor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          equipo_id?: string
+          fin?: string | null
+          id?: string
+          inicio?: string
+          owner_id?: string | null
+          proveedor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reparaciones_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reparaciones_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      solicitudes_reabastecimiento: {
+        Row: {
+          cantidad: number
+          cerrado_at: string | null
+          created_at: string
+          estado: string
+          id: string
+          owner_id: string | null
+          proveedor_id: string | null
+          solicitado_nombre: string | null
+          solicitado_por: string | null
+          tipo_id: string
+          updated_at: string
+        }
+        Insert: {
+          cantidad?: number
+          cerrado_at?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          owner_id?: string | null
+          proveedor_id?: string | null
+          solicitado_nombre?: string | null
+          solicitado_por?: string | null
+          tipo_id: string
+          updated_at?: string
+        }
+        Update: {
+          cantidad?: number
+          cerrado_at?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          owner_id?: string | null
+          proveedor_id?: string | null
+          solicitado_nombre?: string | null
+          solicitado_por?: string | null
+          tipo_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitudes_reabastecimiento_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_reabastecimiento_tipo_id_fkey"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tokens_firma: {
         Row: {
@@ -701,6 +843,7 @@ export type Database = {
           p_equipo: string
           p_estado: Database["public"]["Enums"]["equipo_estado"]
           p_motivo: string
+          p_proveedor?: string
         }
         Returns: undefined
       }
@@ -743,6 +886,19 @@ export type Database = {
         Returns: {
           estado: Database["public"]["Enums"]["equipo_estado"]
           total: number
+        }[]
+      }
+      resumen_proveedores: {
+        Args: never
+        Returns: {
+          dias_promedio: number
+          en_garantia: number
+          en_reparacion: number
+          equipos: number
+          nombre: string
+          proveedor_id: string
+          reparaciones: number
+          valor: number
         }[]
       }
       stock_bajo: {

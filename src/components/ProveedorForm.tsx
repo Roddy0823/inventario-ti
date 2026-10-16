@@ -65,7 +65,7 @@ export function FormProveedor({ p, onClose, onSaved }: { p: Prov | null; onClose
         </div>
         <h4 className="text-xs font-semibold uppercase text-muted-foreground">Asesor asignado</h4>
         <div className="grid gap-3 sm:grid-cols-2">
-          {campo("contacto_nombre", "Nombre del asesor")}{campo("asesor_telefono", "Teléfono directo")}{campo("whatsapp", "Celular / WhatsApp")}{campo("email", "Correo", "email")}
+          {campo("contacto_nombre", "Nombre del asesor")}{campo("asesor_telefono", "Teléfono directo")}{campo("whatsapp", "Celular")}{campo("email", "Correo", "email")}
           {campo("telefono", "Teléfono de la empresa")}
         </div>
         <h4 className="text-xs font-semibold uppercase text-muted-foreground">Tipo de proveedor</h4>

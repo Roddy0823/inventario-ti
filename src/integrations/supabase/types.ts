@@ -429,11 +429,13 @@ export type Database = {
           observaciones: string | null
           owner_id: string | null
           proveedor: string | null
+          proveedor_id: string | null
           sede_id: string | null
           serie: string
           sistema_operativo: string | null
           tipo_id: string
           updated_at: string
+          valor_compra: number | null
         }
         Insert: {
           activo_fijo?: string | null
@@ -455,11 +457,13 @@ export type Database = {
           observaciones?: string | null
           owner_id?: string | null
           proveedor?: string | null
+          proveedor_id?: string | null
           sede_id?: string | null
           serie: string
           sistema_operativo?: string | null
           tipo_id: string
           updated_at?: string
+          valor_compra?: number | null
         }
         Update: {
           activo_fijo?: string | null
@@ -481,11 +485,13 @@ export type Database = {
           observaciones?: string | null
           owner_id?: string | null
           proveedor?: string | null
+          proveedor_id?: string | null
           sede_id?: string | null
           serie?: string
           sistema_operativo?: string | null
           tipo_id?: string
           updated_at?: string
+          valor_compra?: number | null
         }
         Relationships: [
           {
@@ -500,6 +506,13 @@ export type Database = {
             columns: ["marca_id"]
             isOneToOne: false
             referencedRelation: "catalogo_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
             referencedColumns: ["id"]
           },
           {
@@ -694,6 +707,10 @@ export type Database = {
       corregir_serie: {
         Args: { p_equipo: string; p_motivo: string; p_serie: string }
         Returns: undefined
+      }
+      estadisticas_inventario: {
+        Args: { p_sede?: string; p_tipo?: string }
+        Returns: Json
       }
       finalizar_reparacion: {
         Args: { p_devolver: boolean; p_equipo: string; p_motivo: string }

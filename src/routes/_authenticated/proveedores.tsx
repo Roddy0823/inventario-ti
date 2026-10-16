@@ -5,7 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
 import { useCatalogos } from "@/lib/catalogos";
 import { errMsg, fmtFecha } from "@/lib/constantes";
-import { ETIQUETAS_PROVEEDOR, celular, cop, mailLink, telefonoPrincipal, telLink, waLink, type Prov } from "@/lib/proveedores";
+import { ETIQUETAS_PROVEEDOR, cop, telefonoPrincipal, type Prov } from "@/lib/proveedores";
+import { ContactoProveedor } from "@/components/ContactoProveedor";
+import { PedidosProveedor } from "@/components/Pedidos";
 import { PageHeader } from "@/components/Estado";
 import { FormProveedor } from "@/components/ProveedorForm";
 import { RecibirStock } from "@/components/RecibirStock";
@@ -17,7 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { DataTablePagination, FilasSkeleton, usePaginacion } from "@/components/DataTablePagination";
 import { toast } from "sonner";
-import { Download, ExternalLink, Mail, MessageCircle, PackageCheck, Pencil, Phone, Plus, Star, Trash2 } from "lucide-react";
+import { Download, ExternalLink, PackageCheck, Pencil, Plus, Star, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/proveedores")({
   head: () => ({ meta: [{ title: "Proveedores — Finesa" }, { name: "description", content: "Directorio inteligente de proveedores del inventario." }] }),
@@ -63,7 +65,7 @@ function Proveedores() {
     const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet((data ?? []).map((p) => ({
       "Razón social": p.nombre, NIT: p.nit ?? "", Ciudad: p.ciudad ?? "", Dirección: p.direccion ?? "", "Sitio web": p.sitio_web ?? "",
-      Asesor: p.contacto_nombre ?? "", "Teléfono directo": p.asesor_telefono ?? "", "Celular/WhatsApp": p.whatsapp ?? "", Teléfono: p.telefono ?? "", Correo: p.email ?? "",
+      Asesor: p.contacto_nombre ?? "", "Teléfono directo": p.asesor_telefono ?? "", Celular: p.whatsapp ?? "", Teléfono: p.telefono ?? "", Correo: p.email ?? "",
       Tipos: (p.etiquetas ?? []).join(", "), "Días entrega": p.dias_entrega ?? "", "Forma de pago": p.forma_pago ?? "", Estado: p.activo ? "Activo" : "Inactivo",
       "Equipos suministrados": Number(r[p.id]?.equipos ?? 0), "En garantía": Number(r[p.id]?.en_garantia ?? 0), "Valor": Number(r[p.id]?.valor ?? 0),
     })));
@@ -100,9 +102,7 @@ function Proveedores() {
                   <TableCell>{p.nit ?? "—"}</TableCell>
                   <TableCell>{p.contacto_nombre ?? "—"}</TableCell>
                   <TableCell className="whitespace-nowrap">
-                    {tel && <a href={telLink(tel)} className="mr-2 inline-flex text-muted-foreground hover:text-primary" aria-label="Llamar"><Phone className="h-4 w-4" /></a>}
-                    {celular(p) && <a href={waLink(p as Prov, "Hola, te escribo desde el área de TI de Finesa.")} target="_blank" rel="noreferrer" className="mr-2 inline-flex text-muted-foreground hover:text-primary" aria-label="WhatsApp"><MessageCircle className="h-4 w-4" /></a>}
-                    {p.email && <a href={`mailto:${p.email}`} className="inline-flex text-muted-foreground hover:text-primary" aria-label="Correo"><Mail className="h-4 w-4" /></a>}
+                    <div>{tel || "—"}</div>{p.email && <div className="text-xs text-muted-foreground">{p.email}</div>}
                   </TableCell>
                   <TableCell><div className="flex max-w-56 flex-wrap gap-1">{(p.etiquetas ?? []).map((e) => <Badge key={e} variant="secondary" className="text-[10px]">{e}</Badge>)}</div></TableCell>
                   <TableCell className="max-w-56 truncate text-xs text-muted-foreground" title={tipos.join(", ")}>{tipos.join(", ") || "—"}</TableCell>
@@ -182,14 +182,11 @@ function DetalleProveedor({ id, onClose, onEditar }: { id: string | null; onClos
               <dl className="grid grid-cols-2 gap-x-4 gap-y-1">
                 <Item k="NIT" v={d.p.nit} /><Item k="Ciudad" v={d.p.ciudad} /><Item k="Dirección" v={d.p.direccion} />
                 <Item k="Sitio web" v={d.p.sitio_web && <a className="text-primary hover:underline" href={d.p.sitio_web.startsWith("http") ? d.p.sitio_web : `https://${d.p.sitio_web}`} target="_blank" rel="noreferrer">{d.p.sitio_web} <ExternalLink className="inline h-3 w-3" /></a>} />
-                <Item k="Asesor" v={d.p.contacto_nombre} /><Item k="Teléfono directo" v={d.p.asesor_telefono} /><Item k="Celular / WhatsApp" v={d.p.whatsapp} /><Item k="Teléfono empresa" v={d.p.telefono} />
-                <Item k="Correo" v={d.p.email} /><Item k="Entrega promedio" v={d.p.dias_entrega != null ? `${d.p.dias_entrega} días` : null} /><Item k="Forma de pago" v={d.p.forma_pago} />
+                                <Item k="Entrega promedio" v={d.p.dias_entrega != null ? `${d.p.dias_entrega} días` : null} /><Item k="Forma de pago" v={d.p.forma_pago} />
               </dl>
+              <div className="mt-3 rounded border border-border bg-card p-2"><div className="mb-1 text-xs font-medium">Datos de contacto</div><ContactoProveedor p={d.p} compacto /></div>
               {d.p.notas && <p className="mt-2">{d.p.notas}</p>}
               <div className="mt-3 flex flex-wrap gap-2">
-                {telefonoPrincipal(d.p) && <Button size="sm" variant="outline" asChild><a href={telLink(telefonoPrincipal(d.p))}><Phone className="mr-1 h-3.5 w-3.5" />Llamar</a></Button>}
-                {celular(d.p) && <Button size="sm" variant="outline" asChild><a href={waLink(d.p, `Hola${d.p.contacto_nombre ? ` ${d.p.contacto_nombre}` : ""}, te escribo desde el área de TI de Finesa.`)} target="_blank" rel="noreferrer"><MessageCircle className="mr-1 h-3.5 w-3.5" />WhatsApp</a></Button>}
-                {d.p.email && <Button size="sm" variant="outline" asChild><a href={mailLink(d.p, "Finesa — área de TI", "")}><Mail className="mr-1 h-3.5 w-3.5" />Correo</a></Button>}
                 <Button size="sm" variant="outline" onClick={() => onEditar(d.p)}><Pencil className="mr-1 h-3.5 w-3.5" />Editar</Button>
                 <Button size="sm" onClick={() => setRecibir(null)}><PackageCheck className="mr-1 h-3.5 w-3.5" />Recibir stock de este proveedor</Button>
               </div>
@@ -199,6 +196,7 @@ function DetalleProveedor({ id, onClose, onEditar }: { id: string | null; onClos
               <Kpi k="Equipos suministrados" v={Number(r?.equipos ?? 0)} /><Kpi k="En garantía" v={Number(r?.en_garantia ?? 0)} />
               <Kpi k="Valor" v={cop(Number(r?.valor ?? 0))} /><Kpi k="Reparaciones" v={`${Number(r?.reparaciones ?? 0)}${r?.dias_promedio != null ? ` · ${r.dias_promedio} d prom.` : ""}`} />
             </div>
+            <PedidosProveedor proveedorId={d.p.id} />
 
             <section>
               <h3 className="mb-2 font-medium">Artículos que vende</h3>

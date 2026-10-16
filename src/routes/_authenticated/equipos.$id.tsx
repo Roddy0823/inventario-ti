@@ -15,9 +15,10 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { toast } from "sonner";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DataTablePagination, usePaginacion } from "@/components/DataTablePagination";
-import { ChevronDown, Mail, MessageCircle, Phone, ShieldCheck, ShieldOff, Wrench } from "lucide-react";
+import { ChevronDown, ShieldCheck, ShieldOff, Wrench } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ETIQUETA_SERVICIO, celular, telefonoPrincipal, telLink, waLink, type Prov } from "@/lib/proveedores";
+import { ETIQUETA_SERVICIO, type Prov } from "@/lib/proveedores";
+import { ContactoProveedor } from "@/components/ContactoProveedor";
 
 export const Route = createFileRoute("/_authenticated/equipos/$id")({
   head: () => ({ meta: [{ title: "Ficha del equipo — Finesa" }, { name: "description", content: "Datos e historial del equipo." }] }),
@@ -223,9 +224,7 @@ function GarantiaYReparacion({ e }: { e: { garantia_fin: string | null; proveedo
         <div className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm">
           <div><Wrench className="mr-1 inline h-4 w-4" />En reparación con <b>{rep.nombre}</b>{e.reparacion_inicio ? ` desde ${fmtFecha(e.reparacion_inicio)}` : ""}{rep.contacto_nombre ? ` · Asesor: ${rep.contacto_nombre}` : ""}</div>
           <div className="mt-2 flex flex-wrap gap-2">
-            {telefonoPrincipal(rep) && <Button size="sm" variant="outline" asChild><a href={telLink(telefonoPrincipal(rep))}><Phone className="mr-1 h-3.5 w-3.5" />Llamar</a></Button>}
-            {celular(rep) && <Button size="sm" variant="outline" asChild><a href={waLink(rep, `Hola${rep.contacto_nombre ? ` ${rep.contacto_nombre}` : ""}, te escribo desde el área de TI de Finesa para consultar el estado de la reparación del equipo.`)} target="_blank" rel="noreferrer"><MessageCircle className="mr-1 h-3.5 w-3.5" />WhatsApp</a></Button>}
-            {rep.email && <Button size="sm" variant="outline" asChild><a href={`mailto:${rep.email}`}><Mail className="mr-1 h-3.5 w-3.5" />Correo</a></Button>}
+            <ContactoProveedor p={rep} compacto />
           </div>
         </div>
       )}

@@ -23,6 +23,7 @@ import { Route as AuthenticatedEstadisticasRouteImport } from './routes/_authent
 import { Route as AuthenticatedMiPortalRouteImport } from './routes/_authenticated/mi-portal'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedProveedoresRouteImport } from './routes/_authenticated/proveedores'
+import { Route as AuthenticatedReabastecimientoRouteImport } from './routes/_authenticated/reabastecimiento'
 import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as FirmarTokenRouteImport } from './routes/firmar.$token'
@@ -108,6 +109,12 @@ const AuthenticatedProveedoresRoute =
     path: '/proveedores',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedReabastecimientoRoute =
+  AuthenticatedReabastecimientoRouteImport.update({
+    id: '/reabastecimiento',
+    path: '/reabastecimiento',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedReportesRoute = AuthenticatedReportesRouteImport.update({
   id: '/reportes',
   path: '/reportes',
@@ -181,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/mi-portal': typeof AuthenticatedMiPortalRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/proveedores': typeof AuthenticatedProveedoresRoute
+  '/reabastecimiento': typeof AuthenticatedReabastecimientoRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
@@ -207,6 +215,7 @@ export interface FileRoutesByTo {
   '/mi-portal': typeof AuthenticatedMiPortalRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/proveedores': typeof AuthenticatedProveedoresRoute
+  '/reabastecimiento': typeof AuthenticatedReabastecimientoRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
@@ -235,6 +244,7 @@ export interface FileRoutesById {
   '/_authenticated/mi-portal': typeof AuthenticatedMiPortalRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/proveedores': typeof AuthenticatedProveedoresRoute
+  '/_authenticated/reabastecimiento': typeof AuthenticatedReabastecimientoRoute
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/firmar/$token': typeof FirmarTokenRoute
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/mi-portal'
     | '/panel'
     | '/proveedores'
+    | '/reabastecimiento'
     | '/reportes'
     | '/usuarios'
     | '/firmar/$token'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '/mi-portal'
     | '/panel'
     | '/proveedores'
+    | '/reabastecimiento'
     | '/reportes'
     | '/usuarios'
     | '/firmar/$token'
@@ -316,6 +328,7 @@ export interface FileRouteTypes {
     | '/_authenticated/mi-portal'
     | '/_authenticated/panel'
     | '/_authenticated/proveedores'
+    | '/_authenticated/reabastecimiento'
     | '/_authenticated/reportes'
     | '/_authenticated/usuarios'
     | '/firmar/$token'
@@ -440,6 +453,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProveedoresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reabastecimiento': {
+      id: '/_authenticated/reabastecimiento'
+      path: '/reabastecimiento'
+      fullPath: '/reabastecimiento'
+      preLoaderRoute: typeof AuthenticatedReabastecimientoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/reportes': {
       id: '/_authenticated/reportes'
       path: '/reportes'
@@ -529,6 +549,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMiPortalRoute: typeof AuthenticatedMiPortalRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedProveedoresRoute: typeof AuthenticatedProveedoresRoute
+  AuthenticatedReabastecimientoRoute: typeof AuthenticatedReabastecimientoRoute
   AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
   AuthenticatedActasIdRoute: typeof AuthenticatedActasIdRoute
@@ -549,6 +570,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMiPortalRoute: AuthenticatedMiPortalRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedProveedoresRoute: AuthenticatedProveedoresRoute,
+  AuthenticatedReabastecimientoRoute: AuthenticatedReabastecimientoRoute,
   AuthenticatedReportesRoute: AuthenticatedReportesRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
   AuthenticatedActasIdRoute: AuthenticatedActasIdRoute,

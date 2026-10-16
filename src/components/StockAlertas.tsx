@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
 import { useCatalogos } from "@/lib/catalogos";
 import { errMsg, fmtFecha } from "@/lib/constantes";
-import { celular, cop, mailLink, mensajeReabastecer, telefonoPrincipal, telLink, waLink, type Prov } from "@/lib/proveedores";
+import { cop, type Prov } from "@/lib/proveedores";
+import { ContactoProveedor } from "@/components/ContactoProveedor";
+import { DetallePedido, EstadoPedido, NuevoPedido } from "@/components/Pedidos";
 import { FormProveedor } from "@/components/ProveedorForm";
-import { RecibirStock } from "@/components/RecibirStock";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { AlertTriangle, Bell, Clock, Mail, MessageCircle, PackageCheck, Phone, Star, Trash2 } from "lucide-react";
+import { AlertTriangle, Bell, Clock, ShoppingCart, Star, Trash2 } from "lucide-react";
 
 export type StockBajo = { tipo_id: string; tipo: string; disponibles: number; stock_minimo: number };
 
@@ -182,7 +183,7 @@ export function ProveedoresSheet({ tipoId, onClose }: { tipoId: string | null; o
         supabase.from("proveedores").select("id, nombre").eq("activo", true).order("nombre"),
         supabase.from("equipos").select("id", { count: "exact", head: true }).eq("tipo_id", tipoId!).eq("estado", "disponible"),
         supabase.from("alertas_stock_config").select("stock_minimo, activa").eq("tipo_id", tipoId!).maybeSingle(),
-        supabase.from("solicitudes_reabastecimiento").select("*, proveedor:proveedores(nombre)").eq("tipo_id", tipoId!).eq("estado", "solicitada").order("created_at", { ascending: false }),
+        supabase.from("pedido_lineas").select("cantidad, recibida, pedido:pedidos_compra!inner(id, numero, estado, fecha_esperada, created_at, proveedor:proveedores(nombre))").eq("tipo_id", tipoId!).in("pedido.estado", ["borrador", "pedido", "parcial"]),
       ]);
       const vinculos = ((vin.data ?? []) as unknown as Vinculo[]).filter((v) => v.proveedor)
         .sort((a, b) => Number(b.es_principal) - Number(a.es_principal) || Number(b.proveedor!.activo) - Number(a.proveedor!.activo));
@@ -195,7 +196,8 @@ export function ProveedoresSheet({ tipoId, onClose }: { tipoId: string | null; o
   const cant = Number(cantidad) > 0 ? Number(cantidad) : sugerida;
   const [existente, setExistente] = useState("");
   const [nuevo, setNuevo] = useState(false);
-  const [recibir, setRecibir] = useState<{ proveedor: string | null; solicitud: string | null } | null>(null);
+  const [pedir, setPedir] = useState<string | null>(null);
+  const [verPedido, setVerPedido] = useState<string | null>(null);
   const refrescar = () => { qc.invalidateQueries({ queryKey: ["proveedores_articulo"] }); qc.invalidateQueries({ queryKey: ["proveedor"] }); };
 
   async function vincular(proveedor_id: string) {
@@ -214,15 +216,6 @@ export function ProveedoresSheet({ tipoId, onClose }: { tipoId: string | null; o
     const { error } = await supabase.from("articulo_proveedores").delete().eq("id", id);
     if (error) toast.error(errMsg(error)); else refrescar();
   }
-  async function solicitar(p: ProvRow) {
-    const { error } = await supabase.from("solicitudes_reabastecimiento").insert({ tipo_id: tipoId!, proveedor_id: p.id, cantidad: cant, solicitado_nombre: me?.nombre ?? null });
-    if (error) return toast.error(errMsg(error));
-    toast.success(`Cotización marcada como solicitada a ${p.nombre}`); refrescar();
-  }
-  async function cerrar(id: string, estado: "cancelada") {
-    const { error } = await supabase.from("solicitudes_reabastecimiento").update({ estado, cerrado_at: new Date().toISOString() }).eq("id", id);
-    if (error) toast.error(errMsg(error)); else refrescar();
-  }
 
   const vinculados = new Set((d?.vinculos ?? []).map((v) => v.proveedor_id));
   return (
@@ -234,24 +227,20 @@ export function ProveedoresSheet({ tipoId, onClose }: { tipoId: string | null; o
           <div className="mt-2 flex items-center gap-2"><Label className="text-xs">Cantidad requerida</Label><Input type="number" min={1} className="h-8 w-24" placeholder={String(sugerida)} value={cantidad} onChange={(e) => setCantidad(e.target.value)} /></div>
         </div>
 
-        {(d?.solicitudes ?? []).map((s) => (
-          <div key={s.id} className="mt-3 rounded-md border border-warning/50 bg-warning/10 p-3 text-sm">
-            <div className="flex items-start justify-between gap-2">
-              <div><Clock className="mr-1 inline h-3.5 w-3.5" />Cotización solicitada a <b>{(s.proveedor as { nombre: string } | null)?.nombre ?? "—"}</b> el {fmtFecha(s.created_at, true)} por {s.solicitado_nombre ?? "—"} · {s.cantidad} und.</div>
-            </div>
-            <div className="mt-2 flex gap-2">
-              <Button size="sm" onClick={() => setRecibir({ proveedor: s.proveedor_id, solicitud: s.id })}><PackageCheck className="mr-1 h-3.5 w-3.5" />Recibir stock</Button>
-              <Button size="sm" variant="ghost" onClick={() => cerrar(s.id, "cancelada")}>Cancelar solicitud</Button>
-            </div>
-          </div>
-        ))}
+        {(d?.solicitudes ?? []).map((l, i) => {
+          const p = l.pedido as unknown as { id: string; numero: number; estado: string; fecha_esperada: string | null; created_at: string; proveedor: { nombre: string } | null };
+          return (
+            <button key={i} onClick={() => setVerPedido(p.id)} className="mt-3 block w-full rounded-md border border-warning/50 bg-warning/10 p-3 text-left text-sm hover:bg-warning/20">
+              <div className="flex items-center justify-between gap-2"><span><Clock className="mr-1 inline h-3.5 w-3.5" />Pedido #{p.numero} a <b>{p.proveedor?.nombre ?? "—"}</b> · {l.recibida}/{l.cantidad} recibidos</span><EstadoPedido p={p} /></div>
+              <div className="mt-1 text-xs text-muted-foreground">Ya hay un pedido en curso para este artículo{p.fecha_esperada ? ` · entrega esperada ${fmtFecha(p.fecha_esperada)}` : ""}</div>
+            </button>
+          );
+        })}
 
         <h3 className="mt-5 text-sm font-medium">Proveedores del artículo</h3>
         <ul className="mt-2 space-y-2">
           {(d?.vinculos ?? []).map((v) => {
             const p = v.proveedor!;
-            const texto = mensajeReabastecer(p.contacto_nombre, nombre, cant);
-            const tel = telefonoPrincipal(p);
             return (
               <li key={v.id} className={`rounded-md border border-border bg-card p-3 text-sm ${p.activo ? "" : "opacity-60"}`}>
                 <div className="flex items-start justify-between gap-2">
@@ -265,12 +254,8 @@ export function ProveedoresSheet({ tipoId, onClose }: { tipoId: string | null; o
                   </div>
                   <Button size="icon" variant="ghost" onClick={() => desvincular(v.id)} aria-label="Desvincular"><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {celular(p) && <Button size="sm" variant="outline" asChild><a href={waLink(p, texto)} target="_blank" rel="noreferrer"><MessageCircle className="mr-1 h-3.5 w-3.5" />WhatsApp</a></Button>}
-                  {tel && <Button size="sm" variant="outline" asChild><a href={telLink(tel)}><Phone className="mr-1 h-3.5 w-3.5" />Llamar</a></Button>}
-                  {p.email && <Button size="sm" variant="outline" asChild><a href={mailLink(p, `Solicitud de cotización: ${nombre} (${cant} unidades)`, texto)}><Mail className="mr-1 h-3.5 w-3.5" />Correo</a></Button>}
-                  <Button size="sm" variant="secondary" onClick={() => solicitar(p)}>Marcar cotización solicitada</Button>
-                </div>
+                <div className="mt-2"><ContactoProveedor p={p} compacto /></div>
+                <div className="mt-2"><Button size="sm" onClick={() => setPedir(p.id)}><ShoppingCart className="mr-1 h-3.5 w-3.5" />Crear pedido</Button></div>
               </li>
             );
           })}
@@ -289,7 +274,8 @@ export function ProveedoresSheet({ tipoId, onClose }: { tipoId: string | null; o
           <Button variant="outline" className="w-full" onClick={() => setNuevo(true)}>Registrar proveedor nuevo</Button>
         </div>
         {nuevo && <FormProveedor p={null} onClose={() => setNuevo(false)} onSaved={(id) => vincular(id)} />}
-        {recibir && <RecibirStock proveedorId={recibir.proveedor} tipoId={tipoId} solicitudId={recibir.solicitud} onClose={() => setRecibir(null)} />}
+        {pedir && tipoId && <NuevoPedido inicial={{ proveedor_id: pedir, lineas: [{ tipo_id: tipoId, cantidad: cant }] }} onClose={() => setPedir(null)} onCreado={(id) => setVerPedido(id)} />}
+        <DetallePedido id={verPedido} onClose={() => setVerPedido(null)} />
       </SheetContent>
     </Sheet>
   );

@@ -550,6 +550,113 @@ export type Database = {
           },
         ]
       }
+      pedido_lineas: {
+        Row: {
+          cantidad: number
+          created_at: string
+          id: string
+          owner_id: string | null
+          pedido_id: string
+          precio_estimado: number | null
+          recibida: number
+          tipo_id: string
+        }
+        Insert: {
+          cantidad?: number
+          created_at?: string
+          id?: string
+          owner_id?: string | null
+          pedido_id: string
+          precio_estimado?: number | null
+          recibida?: number
+          tipo_id: string
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          id?: string
+          owner_id?: string | null
+          pedido_id?: string
+          precio_estimado?: number | null
+          recibida?: number
+          tipo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_lineas_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos_compra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedido_lineas_tipo_id_fkey"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedidos_compra: {
+        Row: {
+          cancelado_motivo: string | null
+          cerrado_at: string | null
+          creado_nombre: string | null
+          creado_por: string | null
+          created_at: string
+          estado: string
+          fecha_esperada: string | null
+          fecha_pedido: string | null
+          id: string
+          notas: string | null
+          numero: number
+          owner_id: string | null
+          proveedor_id: string
+          updated_at: string
+        }
+        Insert: {
+          cancelado_motivo?: string | null
+          cerrado_at?: string | null
+          creado_nombre?: string | null
+          creado_por?: string | null
+          created_at?: string
+          estado?: string
+          fecha_esperada?: string | null
+          fecha_pedido?: string | null
+          id?: string
+          notas?: string | null
+          numero?: number
+          owner_id?: string | null
+          proveedor_id: string
+          updated_at?: string
+        }
+        Update: {
+          cancelado_motivo?: string | null
+          cerrado_at?: string | null
+          creado_nombre?: string | null
+          creado_por?: string | null
+          created_at?: string
+          estado?: string
+          fecha_esperada?: string | null
+          fecha_pedido?: string | null
+          id?: string
+          notas?: string | null
+          numero?: number
+          owner_id?: string | null
+          proveedor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_compra_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           activo: boolean
@@ -887,6 +994,20 @@ export type Database = {
           estado: Database["public"]["Enums"]["equipo_estado"]
           total: number
         }[]
+      }
+      recibir_pedido_linea: {
+        Args: {
+          p_factura: string
+          p_garantia: string
+          p_linea: string
+          p_marca: string
+          p_modelo: string
+          p_sede: string
+          p_seriales: string[]
+          p_sin_serial: number
+          p_valor: number
+        }
+        Returns: number
       }
       resumen_proveedores: {
         Args: never

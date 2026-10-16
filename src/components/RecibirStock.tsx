@@ -41,8 +41,6 @@ export function RecibirStock({ proveedorId, tipoId, solicitudId, onClose }: { pr
     const { data: vin } = await supabase.from("articulo_proveedores").select("id").eq("tipo_id", f.tipo_id).eq("proveedor_id", f.proveedor_id).maybeSingle();
     if (vin) await supabase.from("articulo_proveedores").update({ ultima_compra: hoy, ...(valor !== null ? { ultimo_precio: valor } : {}) }).eq("id", vin.id);
     else await supabase.from("articulo_proveedores").insert({ tipo_id: f.tipo_id, proveedor_id: f.proveedor_id, ultima_compra: hoy, ultimo_precio: valor });
-    if (solicitudId) await supabase.from("solicitudes_reabastecimiento").update({ estado: "recibida", cerrado_at: new Date().toISOString() }).eq("id", solicitudId);
-    else await supabase.from("solicitudes_reabastecimiento").update({ estado: "recibida", cerrado_at: new Date().toISOString() }).eq("tipo_id", f.tipo_id).eq("estado", "solicitada");
     setGuardando(false);
     toast.success(`${total} equipo(s) registrados como disponibles`);
     ["equipos", "proveedores", "proveedor", "proveedores_articulo", "solicitudes"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));

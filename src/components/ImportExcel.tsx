@@ -97,8 +97,11 @@ export function ImportExcel({ isAdmin }: { isAdmin: boolean }) {
         if (why.length) return rep.push({ hoja: "Inventario_Equipos", fila: i + 2, identificador: s ?? af ?? "", motivo: why.join("; ") });
         if (s) ss.add(s); if (af) aa.add(af);
         const anio = cl(col(r, "Año de Compra"));
+        const vRaw = cl(col(r, "Valor Compra", "Valor de Compra", "Valor"));
+        const valor = vRaw ? Number(String(vRaw).replace(/[^\d.,-]/g, "").replace(/\./g, "").replace(",", ".")) : NaN;
         nuevosEq.push({ tipo_id: cid("tipo_equipo", t), marca_id: cid("marca", marca(col(r, "Marca"))), modelo: cl(col(r, "Modelo")), serie: s, activo_fijo: af,
-          proveedor: cl(col(r, "Proveedor")), anio_compra: anio && /^\d{4}$/.test(anio) ? Number(anio) : null, sede_id: (s && idSede.get(s)) || (af && idSede.get(af)) || null, estado: "disponible" });
+          proveedor: cl(col(r, "Proveedor")), anio_compra: anio && /^\d{4}$/.test(anio) ? Number(anio) : null, sede_id: (s && idSede.get(s)) || (af && idSede.get(af)) || null, estado: "disponible",
+          valor_compra: isFinite(valor) && valor >= 0 ? valor : null });
       });
       for (let i = 0; i < nuevosEq.length; i += 200) {
         setProg(`Cargando equipos… ${i}/${nuevosEq.length}`); setPct(35 + Math.round((i / Math.max(1, nuevosEq.length)) * 35));

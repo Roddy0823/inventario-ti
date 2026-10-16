@@ -117,10 +117,10 @@ function Equipos() {
       <div className={`overflow-x-auto rounded-md border border-border bg-card transition-opacity ${q.isFetching && !q.isLoading ? "opacity-60" : ""}`}>
         <table className="w-full text-sm">
           <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
-            <tr><th className="px-4 py-2">Serie / código</th><th className="px-4 py-2">Tipo</th><th className="px-4 py-2">Marca / modelo</th><th className="px-4 py-2">Sede</th><th className="px-4 py-2">Asignado a</th><th className="px-4 py-2">Estado</th></tr>
+            <tr><th className="px-4 py-2">Serie / código</th><th className="px-4 py-2">Tipo</th><th className="px-4 py-2">Marca / modelo</th><th className="px-4 py-2">Sede</th><th className="px-4 py-2">Asignado a</th><th className="px-4 py-2 text-right">Valor</th><th className="px-4 py-2">Estado</th></tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {q.isLoading && <FilasSkeleton columnas={6} />}
+            {q.isLoading && <FilasSkeleton columnas={7} />}
             {lista.map((e) => (
               <tr key={e.id} className="hover:bg-muted/50">
                 <td className="px-4 py-2.5"><Link to="/equipos/$id" params={{ id: e.id }} className="font-mono text-xs font-medium text-primary hover:underline">{e.serie}</Link>{e.activo_fijo && <div className="font-mono text-[11px] text-muted-foreground">{e.activo_fijo}</div>}</td>
@@ -128,10 +128,11 @@ function Equipos() {
                 <td className="px-4 py-2.5">{cat.nombre(e.marca_id)} {e.modelo}</td>
                 <td className="px-4 py-2.5">{cat.nombre(e.sede_id)}</td>
                 <td className="px-4 py-2.5">{(e.empleado as { nombre: string } | null)?.nombre ?? "—"}</td>
+                <td className="px-4 py-2.5 text-right tabular-nums">{e.valor_compra != null ? `$${Number(e.valor_compra).toLocaleString("es-CO")}` : "—"}</td>
                 <td className="px-4 py-2.5"><EstadoEquipo estado={e.estado} /></td>
               </tr>
             ))}
-            {!q.isLoading && !lista.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No hay equipos que coincidan.</td></tr>}
+            {!q.isLoading && !lista.length && <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No hay equipos que coincidan.</td></tr>}
           </tbody>
         </table>
       </div>

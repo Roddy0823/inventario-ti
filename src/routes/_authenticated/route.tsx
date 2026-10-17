@@ -1,13 +1,14 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate, useRouterState } from "@tanstack/react-router";
 import { CampanaAlertas } from "@/components/StockAlertas";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/me";
 import type { Permiso } from "@/lib/constantes";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Laptop, Users, FileSignature, FolderOpen, Tags, UserCog, FileBarChart, Upload, LogOut, Menu, X, Inbox, Settings, Loader2, Truck, ShoppingCart, BarChart3,
+  Package, ShieldCheck, ChevronDown, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,13 +23,25 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 type NavItem = { to: string; label: string; icon: typeof Laptop; show: boolean };
+type NavGroup = { id: string; label?: string; icon?: typeof Laptop; items: NavItem[] };
 
 function Shell() {
   const { data: me, isLoading } = useMe();
   const qc = useQueryClient();
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
+  const [mini, setMini] = useState(false);
+  const [abiertos, setAbiertos] = useState<Record<string, boolean>>({});
   const cargando = useRouterState({ select: (s) => s.status === "pending" });
+  const path = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    try { setAbiertos(JSON.parse(localStorage.getItem("nav-grupos") || "{}")); } catch { /* vacío */ }
+    setMini(localStorage.getItem("nav-mini") === "1");
+  }, []);
+  function toggleMini() {
+    setMini((m) => { localStorage.setItem("nav-mini", m ? "0" : "1"); return !m; });
+  }
 
   async function salir() {
     await supabase.rpc("log_evento", { p_accion: "LOGOUT", p_detalle: "Cierre de sesión" });
@@ -51,24 +64,50 @@ function Shell() {
   }
 
   const can = (p: Permiso) => me.can(p);
-  const items: NavItem[] = me.isEmpleado
-    ? [{ to: "/mi-portal", label: "Mis equipos y actas", icon: Inbox, show: true }]
+  const grupos: NavGroup[] = me.isEmpleado
+    ? [{ id: "portal", items: [{ to: "/mi-portal", label: "Mis equipos y actas", icon: Inbox, show: true }] }]
     : [
-        { to: "/panel", label: "Panel", icon: LayoutDashboard, show: true },
-        { to: "/equipos", label: "Inventario", icon: Laptop, show: true },
-        { to: "/proveedores", label: "Proveedores", icon: Truck, show: true },
-        { to: "/reabastecimiento", label: "Reabastecimiento", icon: ShoppingCart, show: true },
-        { to: "/estadisticas", label: "Estadísticas", icon: BarChart3, show: true },
-        { to: "/empleados", label: "Empleados", icon: Users, show: true },
-        { to: "/actas/nueva", label: "Nueva acta", icon: FileSignature, show: can("actas_entrega") || can("actas_devolucion") },
-        { to: "/actas", label: "Repositorio de actas", icon: FolderOpen, show: true },
-        { to: "/carga-masiva", label: "Carga masiva", icon: Upload, show: can("cargas_masivas") },
-        { to: "/reportes", label: "Reportes", icon: FileBarChart, show: can("reportes_exportar") },
-        { to: "/catalogos", label: "Catálogos", icon: Tags, show: me.isAdmin },
-        { to: "/usuarios", label: "Usuarios y permisos", icon: UserCog, show: me.isAdmin },
+        { id: "inicio", items: [{ to: "/panel", label: "Panel", icon: LayoutDashboard, show: true }] },
+        { id: "inventario", label: "Inventario", icon: Package, items: [
+          { to: "/equipos", label: "Equipos", icon: Laptop, show: true },
+          { to: "/reabastecimiento", label: "Reabastecimiento", icon: ShoppingCart, show: true },
+          { to: "/proveedores", label: "Proveedores", icon: Truck, show: true },
+          { to: "/carga-masiva", label: "Carga masiva", icon: Upload, show: can("cargas_masivas") },
+        ] },
+        { id: "actas", label: "Personas y actas", icon: FileSignature, items: [
+          { to: "/empleados", label: "Empleados", icon: Users, show: true },
+          { to: "/actas/nueva", label: "Nueva acta", icon: FileSignature, show: can("actas_entrega") || can("actas_devolucion") },
+          { to: "/actas", label: "Repositorio de actas", icon: FolderOpen, show: true },
+        ] },
+        { id: "analisis", label: "Análisis", icon: BarChart3, items: [
+          { to: "/estadisticas", label: "Estadísticas", icon: BarChart3, show: true },
+          { to: "/reportes", label: "Reportes", icon: FileBarChart, show: can("reportes_exportar") },
+        ] },
+        { id: "admin", label: "Administración", icon: ShieldCheck, items: [
+          { to: "/catalogos", label: "Catálogos", icon: Tags, show: me.isAdmin },
+          { to: "/usuarios", label: "Usuarios y permisos", icon: UserCog, show: me.isAdmin },
+        ] },
       ];
+  const visibles = grupos.map((g) => ({ ...g, items: g.items.filter((i) => i.show) })).filter((g) => g.items.length);
+  const enRuta = (to: string) => to === "/actas" || to === "/panel" ? path === to : path === to || path.startsWith(to + "/");
+  const grupoActivo = (g: NavGroup) => g.items.some((i) => enRuta(i.to) && !(i.to === "/actas" && path === "/actas/nueva"));
 
   const rol = me.isAdmin ? "Administrador" : me.isStaff ? "Auxiliar de soporte" : "Empleado";
+
+  const linkCls = (compacto: boolean) => cn("flex items-center gap-3 rounded py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", compacto ? "justify-center px-2" : "px-3");
+  const renderLink = (i: NavItem, sub: boolean) => (
+    <Link
+      key={i.to}
+      to={i.to}
+      title={mini ? i.label : undefined}
+      onClick={() => setOpen(false)}
+      activeOptions={{ exact: i.to === "/actas" || i.to === "/panel" }}
+      className={cn(linkCls(mini), sub && !mini && "pl-9")}
+      activeProps={{ className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium" }}
+    >
+      <i.icon className="h-4 w-4 shrink-0" /> {!mini && i.label}
+    </Link>
+  );
 
   return (
     <div className="flex min-h-screen">
@@ -79,30 +118,44 @@ function Shell() {
         </>
       )}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-sidebar text-sidebar-foreground transition-transform lg:static lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-sidebar text-sidebar-foreground transition-all lg:sticky lg:top-0 lg:h-screen lg:translate-x-0",
         open ? "translate-x-0" : "-translate-x-full",
+        mini && "lg:w-16",
       )}>
-        <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-5">
-          <div>
+        <div className={cn("flex h-16 items-center justify-between border-b border-sidebar-border px-5", mini && "lg:justify-center lg:px-2")}>
+          <div className={cn(mini && "lg:hidden")}>
             <div className="font-display text-lg font-extrabold tracking-tight text-sidebar-accent-foreground">FINESA</div>
             <div className="text-[10px] uppercase tracking-[0.2em] text-sidebar-primary">Inventario y actas</div>
           </div>
-          {me.isStaff && <CampanaAlertas />}
+          {me.isStaff && !mini && <CampanaAlertas />}
           <button className="lg:hidden" onClick={() => setOpen(false)} aria-label="Cerrar menú"><X className="h-5 w-5" /></button>
+          <button className="hidden rounded p-1 hover:bg-sidebar-accent lg:block" onClick={() => toggleMini()} aria-label={mini ? "Expandir menú" : "Contraer menú"} title={mini ? "Expandir menú" : "Contraer menú"}>
+            {mini ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          </button>
         </div>
-        <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
-          {items.filter((i) => i.show).map((i) => (
-            <Link
-              key={i.to}
-              to={i.to}
-              onClick={() => setOpen(false)}
-              activeOptions={{ exact: i.to === "/actas" || i.to === "/panel" }}
-              className="flex items-center gap-3 rounded px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              activeProps={{ className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium" }}
-            >
-              <i.icon className="h-4 w-4 shrink-0" /> {i.label}
-            </Link>
-          ))}
+        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+          {visibles.map((g) => {
+            if (!g.label) return <div key={g.id}>{g.items.map((i) => renderLink(i, false))}</div>;
+            const activo = grupoActivo(g);
+            const abierto = mini || activo || !!abiertos[g.id];
+            const Icon = g.icon!;
+            return (
+              <div key={g.id} className={cn(mini && "border-t border-sidebar-border pt-1 first:border-0")}>
+                {!mini && (
+                  <button
+                    onClick={() => setAbiertos((a) => { const n = { ...a, [g.id]: !abierto }; localStorage.setItem("nav-grupos", JSON.stringify(n)); return n; })}
+                    className={cn(linkCls(false), "w-full", activo && "text-sidebar-accent-foreground font-medium")}
+                    aria-expanded={abierto}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 text-left">{g.label}</span>
+                    <ChevronDown className={cn("h-4 w-4 transition-transform", abierto && "rotate-180")} />
+                  </button>
+                )}
+                {abierto && <div className="space-y-0.5">{g.items.map((i) => renderLink(i, true))}</div>}
+              </div>
+            );
+          })}
         </nav>
         <div className="border-t border-sidebar-border p-4">
           <div className="flex items-start justify-between gap-2">

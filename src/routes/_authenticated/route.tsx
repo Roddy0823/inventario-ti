@@ -37,7 +37,10 @@ function Shell() {
 
   useEffect(() => {
     try { setAbiertos(JSON.parse(localStorage.getItem("nav-grupos") || "{}")); } catch { /* vacío */ }
-    setMini(localStorage.getItem("nav-mini") === "1");
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const upd = () => setMini(mq.matches && localStorage.getItem("nav-mini") === "1");
+    upd(); mq.addEventListener("change", upd);
+    return () => mq.removeEventListener("change", upd);
   }, []);
   function toggleMini() {
     setMini((m) => { localStorage.setItem("nav-mini", m ? "0" : "1"); return !m; });
